@@ -1,9 +1,19 @@
 import { Fragment, MouseEvent, useState } from "react";
 import { flushSync } from "react-dom";
 
+interface PawnPos {
+	x: number,
+	y: number,
+}
+
+interface Wall {
+	row: number,
+	col: number,
+}
+
 function App() {
-	const [walls, setWalls] = useState(matrix(9, 9));
-	const [whitePawnPos, setWhitePawnPos] = useState({
+	const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
+	const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>({
 		x: 8,
 		y: 4,
 	});
@@ -41,7 +51,6 @@ function App() {
 				}
 			}
 
-			console.log(walls[col][row]);
 			if (walls[col][row].row != 0) {
 				return;
 			}
@@ -56,10 +65,13 @@ function App() {
 				col -= 1;
 			}
 
-			const copy = [...walls];
+			const copy = structuredClone(walls);
 			copy[col][row] = { row: 1, col: walls[col][row].col };
 			copy[col + 1][row] = { row: 2, col: walls[col + 1][row].col };
-			setWalls(copy);
+
+			if (validateWalls(whitePawnPos, copy)) {
+				setWalls(copy);
+			}
 			return;
 		}
 
@@ -67,7 +79,6 @@ function App() {
 			if (row > 7) row = 7;
 			if (col > 7) col = 7;
 
-			console.log(walls[col][row]);
 			if (walls[col][row + 1].col == 1) {
 				if (row >= 1) {
 					row -= 1;
@@ -76,13 +87,15 @@ function App() {
 				}
 			}
 
-			console.log(walls[col][row]);
 			if (walls[col][row].row == 1 || walls[col][row].col != 0) return;
 
-			const copy = [...walls];
+			const copy = structuredClone(walls);
 			copy[col][row] = { row: walls[col][row].row, col: 1 };
 			copy[col][row + 1] = { row: walls[col][row + 1].row, col: 2 };
-			setWalls(copy);
+
+			if (validateWalls(whitePawnPos, copy)) {
+				setWalls(copy);
+			}
 			return;
 		}
 
@@ -220,13 +233,77 @@ const Intersection = ({
 	);
 };
 
-function matrix(m: number, n: number) {
+function matrix(m: number, n: number): Wall[][] {
 	return Array.from(
 		{
 			length: m,
 		},
 		() => new Array(n).fill({ row: 0, col: 0 }),
 	);
+}
+
+
+const validateWalls = (pos: PawnPos, walls: Wall[][]): boolean => {
+	if (pos.x == 8) {
+		return true
+	}
+
+	const s = (x:number,y: number) => `${x}${y}`
+	const visited = new Set()
+	visited.add(s(pos.x, pos.y))
+
+	const stack = [pos]
+	let act;
+	let x;
+	let y;
+
+	while (stack.length > 0) {
+		act = stack.pop()
+		console.log("ACT", act)
+		if (!act) break
+
+		if (act.x <= 7 && walls[act.y][act.x].row == 0) {
+			x = act.x + 1
+			y = act.y + 0
+			if (x == 8) {
+				return true
+			}
+
+			if (!visited.has(s(x,y))) {
+				console.log("visiting", {x,y})
+				visited.add(s(x,y))
+				stack.push({ x, y })
+			}
+		}
+		if (act.y <= 7 && walls[act.y][act.x].col == 0) {
+			x = act.x + 0
+			y = act.y + 1
+			if (!visited.has(s(x,y))) {
+				console.log("visiting", {x,y})
+				visited.add(s(x,y))
+				stack.push({ x, y })
+			}
+		}
+		if (act.y >= 1 && walls[act.y - 1][act.x].col == 0) {
+			x = act.x + 0
+			y = act.y - 1
+			if (!visited.has(s(x,y))) {
+				console.log("visiting", {x,y})
+				visited.add(s(x,y))
+				stack.push({ x, y })
+			}
+		}
+		if (act.x >= 1 && walls[act.y][act.x - 1].row == 0) {
+			x = act.x - 1
+			y = act.y + 0
+			if (!visited.has(s(x,y))) {
+				console.log("visiting", {x,y})
+				visited.add(s(x,y))
+				stack.push({ x, y })
+			}
+		}
+	}
+	return false
 }
 
 export default App;
