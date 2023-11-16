@@ -13,10 +13,9 @@ interface Wall {
 
 function App() {
 	const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
-	const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>({
-		x: 8,
-		y: 4,
-	});
+	const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>({ x: 0, y: 4, });
+	const [blackPawnPos, setBlackPawnPos] = useState<PawnPos>({ x: 8, y: 4, });
+	const [turn, setTurn] = useState<Boolean>(true);
 
 	const handleClick = (e: MouseEvent<HTMLDivElement>) => {
 		const target = e.target as HTMLDivElement;
@@ -39,69 +38,23 @@ function App() {
 			return;
 		}
 
-		if (target.id == "horizontal-wall" || target.id == "intersection") {
-			if (row > 7) row = 7;
-			if (col > 7) col = 7;
-
-			if (walls[col + 1][row].row == 1) {
-				if (col >= 1) {
-					col -= 1;
-				} else {
-					return;
-				}
-			}
-
-			if (walls[col][row].row != 0) {
-				return;
-			}
-
-			if (walls[col][row].col == 1) {
-				if (
-					col < 1 ||
-					walls[col - 1][row].col == 1 ||
-					walls[col - 1][row].row != 0
-				)
-					return;
-				col -= 1;
-			}
-
-			const copy = structuredClone(walls);
-			copy[col][row] = { row: 1, col: walls[col][row].col };
-			copy[col + 1][row] = { row: 2, col: walls[col + 1][row].col };
-
-			if (validateWalls(whitePawnPos, copy)) {
+		if (["horizontal-wall", "vertical-wall", "intersection"].includes(target.id)) {
+			const copy = CheckValidWalls(target.id, row, col, walls)
+			if (copy && validateWalls(whitePawnPos, blackPawnPos, copy)) {
 				setWalls(copy);
+				setTurn(!turn)
 			}
-			return;
-		}
-
-		if (target.id == "vertical-wall") {
-			if (row > 7) row = 7;
-			if (col > 7) col = 7;
-
-			if (walls[col][row + 1].col == 1) {
-				if (row >= 1) {
-					row -= 1;
-				} else {
-					return;
-				}
-			}
-
-			if (walls[col][row].row == 1 || walls[col][row].col != 0) return;
-
-			const copy = structuredClone(walls);
-			copy[col][row] = { row: walls[col][row].row, col: 1 };
-			copy[col][row + 1] = { row: walls[col][row + 1].row, col: 2 };
-
-			if (validateWalls(whitePawnPos, copy)) {
-				setWalls(copy);
-			}
-			return;
+			return
 		}
 
 		document.startViewTransition(() => {
 			flushSync(() => {
-				setWhitePawnPos({ x: row, y: col });
+				if (turn) {
+					setWhitePawnPos({ x: row, y: col });
+				} else {
+					setBlackPawnPos({ x: row, y: col });
+				}
+				setTurn(!turn)
 			})
 		});
 	};
@@ -122,7 +75,8 @@ function App() {
 											row={row}
 											col={col}
 											state={
-												whitePawnPos.x == row && whitePawnPos.y == col ? 1 : 0
+												whitePawnPos.x == row && whitePawnPos.y == col ? 1 : 0 ||
+												blackPawnPos.x == row && blackPawnPos.y == col ? 2 : 0
 											}
 										/>
 										{row < 8 ? (
@@ -176,14 +130,13 @@ const Cell = ({
 	return (
 		<div
 			key={`${row}-${col}`}
-			className={`flex items-center justify-center w-12 h-12 ${isEven ? "bg-slate-300" : "bg-slate-600"
-				}`}
+			className={`flex items-center justify-center w-12 h-12 ${isEven ? "bg-slate-300" : "bg-slate-600"}`}
 			data-row={row}
 			data-col={col}
 			id="cell"
 		>
-			{state == 1 && (
-				<div id="pawn" style={{ "viewTransitionName": "pawn" }} className="w-9 h-9 bg-blue-600 rounded-full" />
+			{!!state && (
+				<div id="pawn" style={{ "viewTransitionName": state == 1 ? "whitePawn" : "blackPawn" }} className={`w-9 h-9  rounded-full ${state == 1 ? "bg-blue-600" : "bg-red-600"}`} />
 			)}
 		</div>
 	);
@@ -243,12 +196,14 @@ function matrix(m: number, n: number): Wall[][] {
 }
 
 
-const validateWalls = (pos: PawnPos, walls: Wall[][]): boolean => {
-	if (pos.x == 8) {
+const validateWalls = (whitePawnPos: PawnPos, blackPawnPos: PawnPos, walls: Wall[][]): boolean => {
+	if (whitePawnPos.x == 8 || blackPawnPos.x == 0)
 		return true
-	}
+	return dfs(whitePawnPos, 8, walls) && dfs(blackPawnPos, 0, walls)
+}
 
-	const s = (x:number,y: number) => `${x}${y}`
+const dfs = (pos: PawnPos, end: number, walls: Wall[][]) => {
+	const s = (x: number, y: number) => `${x}${y}`
 	const visited = new Set()
 	visited.add(s(pos.x, pos.y))
 
@@ -259,51 +214,104 @@ const validateWalls = (pos: PawnPos, walls: Wall[][]): boolean => {
 
 	while (stack.length > 0) {
 		act = stack.pop()
-		console.log("ACT", act)
+		if (x == end)
+			return true
+
 		if (!act) break
 
 		if (act.x <= 7 && walls[act.y][act.x].row == 0) {
 			x = act.x + 1
 			y = act.y + 0
-			if (x == 8) {
-				return true
-			}
+			if (x == end) return true
 
-			if (!visited.has(s(x,y))) {
-				console.log("visiting", {x,y})
-				visited.add(s(x,y))
+			if (!visited.has(s(x, y))) {
+				visited.add(s(x, y))
 				stack.push({ x, y })
 			}
 		}
 		if (act.y <= 7 && walls[act.y][act.x].col == 0) {
 			x = act.x + 0
 			y = act.y + 1
-			if (!visited.has(s(x,y))) {
-				console.log("visiting", {x,y})
-				visited.add(s(x,y))
+			if (!visited.has(s(x, y))) {
+				visited.add(s(x, y))
 				stack.push({ x, y })
 			}
 		}
 		if (act.y >= 1 && walls[act.y - 1][act.x].col == 0) {
 			x = act.x + 0
 			y = act.y - 1
-			if (!visited.has(s(x,y))) {
-				console.log("visiting", {x,y})
-				visited.add(s(x,y))
+			if (!visited.has(s(x, y))) {
+				visited.add(s(x, y))
 				stack.push({ x, y })
 			}
 		}
 		if (act.x >= 1 && walls[act.y][act.x - 1].row == 0) {
 			x = act.x - 1
 			y = act.y + 0
-			if (!visited.has(s(x,y))) {
-				console.log("visiting", {x,y})
-				visited.add(s(x,y))
+			if (x == end) return true
+			if (!visited.has(s(x, y))) {
+				visited.add(s(x, y))
 				stack.push({ x, y })
 			}
 		}
 	}
 	return false
+}
+
+
+const CheckValidWalls = (id: string, row: number, col: number, walls: Wall[][]): Wall[][] | null => {
+	if (id == "horizontal-wall" || id == "intersection") {
+		if (row > 7) row = 7;
+		if (col > 7) col = 7;
+
+		if (walls[col + 1][row].row == 1) {
+			if (col >= 1 && walls[col - 1][row].col == 0) {
+				col -= 1;
+			} else {
+				return null;
+			}
+		}
+
+		if (walls[col][row].row != 0) {
+			return null;
+		}
+
+		if (walls[col][row].col == 1) {
+			if (
+				col < 1 ||
+				walls[col - 1][row].col == 1 ||
+				walls[col - 1][row].row != 0
+			)
+				return null;
+			col -= 1;
+		}
+
+		const copy: Wall[][] = structuredClone(walls);
+		copy[col][row] = { row: 1, col: walls[col][row].col };
+		copy[col + 1][row] = { row: 2, col: walls[col + 1][row].col };
+		return copy;
+	}
+
+	if (id == "vertical-wall") {
+		if (row > 7) row = 7;
+		if (col > 7) col = 7;
+
+		if (walls[col][row + 1].col == 1) {
+			if (row >= 1 && walls[col][row - 1].row == 0) {
+				row -= 1;
+			} else {
+				return null;
+			}
+		}
+
+		if (walls[col][row].row == 1 || walls[col][row].col != 0) return null;
+
+		const copy = structuredClone(walls);
+		copy[col][row] = { row: walls[col][row].row, col: 1 };
+		copy[col][row + 1] = { row: walls[col][row + 1].row, col: 2 };
+		return copy
+	}
+	return null
 }
 
 export default App;
