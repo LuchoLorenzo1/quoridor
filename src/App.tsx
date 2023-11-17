@@ -397,8 +397,13 @@ const pickVerticalWall = (
     }
   }
 
-  if (walls[col][row].row == 1 || walls[col][row].col != 0) return null;
+  if (walls[col][row].col != 0) return null;
 
+  if (walls[col][row].row == 1) {
+    if (row < 1 || walls[col][row - 1].row == 1 || walls[col][row - 1].col != 0)
+      return null;
+    row -= 1;
+  }
   return { row, col };
 };
 
@@ -458,7 +463,6 @@ const getPossibleMoves = (
       }
       if (x < 0) {
         // Es porque el otro esta para abajo
-        console.log(pawnPos, x, y);
         if (
           (pawnPos.x > 2 && walls[pawnPos.y][pawnPos.x - 2].row != 0) ||
           pawnPos.x + x < 0
@@ -474,7 +478,6 @@ const getPossibleMoves = (
       }
       if (y > 0) {
         // Es porque el otro esta para derecha
-        console.log(pawnPos, x, y);
         if (walls[pawnPos.y + 1][pawnPos.x].col != 0 || pawnPos.y + y > 8) {
           y -= 1;
           if (walls[pawnPos.y + 1][pawnPos.x].row == 0)
@@ -487,7 +490,6 @@ const getPossibleMoves = (
       }
       if (y < 0) {
         // Es porque el otro esta para derecha
-        console.log(pawnPos, x, y);
         if (
           (pawnPos.y > 2 && walls[pawnPos.y - 2][pawnPos.x].col != 0) ||
           pawnPos.y + y < 0
