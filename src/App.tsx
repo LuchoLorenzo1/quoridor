@@ -30,15 +30,7 @@ function App() {
     let row = +_row;
     let col = +_col;
 
-    if (target.id == "whitePawn") {
-      if (!turn || whitePawnPosAdj.length > 0) {
-        setWhitePawnPosAdj([]);
-        return;
-      }
-      let adjs = getPossibleMoves(whitePawnPos, blackPawnPos, walls);
-      setWhitePawnPosAdj(adjs);
-      return;
-    } else if (
+    if (
       ["horizontal-wall", "vertical-wall", "intersection"].includes(target.id)
     ) {
       if (whitePawnPosAdj.length != 0) {
@@ -50,6 +42,17 @@ function App() {
         setWalls(copy);
         setTurn(!turn);
       }
+    } else if (
+      target.id == "whitePawn" ||
+      (target.id == "cell" && compare(whitePawnPos, row, col))
+    ) {
+      if (!turn || whitePawnPosAdj.length > 0) {
+        setWhitePawnPosAdj([]);
+        return;
+      }
+      let adjs = getPossibleMoves(whitePawnPos, blackPawnPos, walls);
+      setWhitePawnPosAdj(adjs);
+      return;
     } else if (target.id == "cell" || target.id == "ghostPawn") {
       document.startViewTransition(() => {
         flushSync(() => {
@@ -87,8 +90,11 @@ function App() {
       return;
     const target = e.target as HTMLDivElement;
     const id = target.id;
-    let row = +(target.getAttribute("data-row") || 1);
-    let col = +(target.getAttribute("data-col") || 0);
+    let _row = target.getAttribute("data-row");
+    let _col = target.getAttribute("data-col");
+    if (!_row || !_col) return;
+    let row = +_row;
+    let col = +_col;
 
     if (id == "horizontal-wall" || id == "intersection") {
       let r = pickHorizontalWall(row, col, walls);
@@ -104,103 +110,30 @@ function App() {
   };
 
   return (
-    <>
-      <h1>{turn ? "white" : "black"}</h1>
+    <div className="w-screen h-screen flex flex-col justify-center items-center">
+      <h1>Turn: {turn ? "White" : "Black"}</h1>
       <div
         onClick={(e) => handleClick(e)}
         onMouseOver={(e) => handleHover(e)}
-        className="w-screen h-screen flex justify-center items-center"
+        className="flex"
       >
         {walls.map((f, col) => {
           return (
             <Fragment key={`col-${col}`}>
-              <div className="flex flex-col-reverse">
-                {f.map((c, row) => {
-                  return (
-                    <Fragment key={`cell-${row}-${col}`}>
-                      <Cell
-                        row={row}
-                        col={col}
-                        state={
-                          whitePawnPos.x == row && whitePawnPos.y == col
-                            ? 1
-                            : 0 ||
-                              (blackPawnPos.x == row && blackPawnPos.y == col)
-                            ? 2
-                            : 0
-                        }
-                        adjacents={whitePawnPosAdj}
-                      />
-                      {row < 8 ? (
-                        <Wall
-                          state={c.row}
-                          hovered={
-                            hoveredWall &&
-                            hoveredWall.wall.col &&
-                            ((hoveredWall.pos.x == row &&
-                              hoveredWall.pos.y == col) ||
-                              (hoveredWall.pos.x == row &&
-                                hoveredWall.pos.y == col - 1))
-                              ? true
-                              : false
-                          }
-                          row={row}
-                          col={col}
-                          horizontal={true}
-                        />
-                      ) : (
-                        ""
-                      )}
-                    </Fragment>
-                  );
-                })}
-              </div>
-              {col < 8 && (
-                <div key={`walls-${col}`} className="flex flex-col-reverse">
-                  {f.map((c, row) => {
-                    return (
-                      <Fragment key={`wall-${row}-${col}`}>
-                        <Wall
-                          state={c.col}
-                          row={row}
-                          col={col}
-                          hovered={
-                            hoveredWall &&
-                            hoveredWall.wall.row &&
-                            ((hoveredWall.pos.x == row &&
-                              hoveredWall.pos.y == col) ||
-                              (hoveredWall.pos.x == row - 1 &&
-                                hoveredWall.pos.y == col))
-                              ? true
-                              : false
-                          }
-                        />
-                        {row < 8 ? (
-                          <Intersection
-                            row={row}
-                            col={col}
-                            state={c}
-                            hovered={
-                              hoveredWall &&
-                              hoveredWall.pos.x == row &&
-                              hoveredWall.pos.y == col
-                                ? hoveredWall.wall
-                                : undefined
-                            }
-                          />
-                        ) : (
-                          ""
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                </div>
-              )}
+              <CellCol
+                col={col}
+                f={f}
+                hoveredWall={hoveredWall}
+                whitePawnPosAdj={whitePawnPosAdj}
+                whitePawnPos={whitePawnPos}
+                blackPawnPos={blackPawnPos}
+              />
+              <WallCol col={col} f={f} hoveredWall={hoveredWall} />
             </Fragment>
           );
         })}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -215,7 +148,7 @@ const Cell = ({
   state: number;
   adjacents: PawnPos[];
 }) => {
-  const isEven = !((row + col) % 2);
+  let cellColor = !((row + col) % 2) ? "bg-slate-300" : "bg-slate-600";
   let pawnName = state == 1 ? "whitePawn" : "blackPawn";
 
   let isGhost = false;
@@ -223,18 +156,16 @@ const Cell = ({
     isGhost = (i.x == row && i.y == col) || isGhost;
   }
 
-  let color = state == 1 ? "bg-blue-600" : "bg-red-600";
+  let color = state == 1 ? "bg-white" : "bg-black";
   if (isGhost) {
-    color = "bg-blue-300";
-    pawnName = "ghostPawn";
+    color = "bg-pink-50";
+    pawnName = `ghostPawn`;
   }
 
   return (
     <div
       key={`${row}-${col}`}
-      className={`flex items-center justify-center w-12 h-12 ${
-        isEven ? "bg-slate-300" : "bg-slate-600"
-      }`}
+      className={`flex items-center justify-center w-12 h-12 ${cellColor}`}
       data-row={row}
       data-col={col}
       id="cell"
@@ -245,7 +176,7 @@ const Cell = ({
           data-col={col}
           id={pawnName}
           style={{ viewTransitionName: pawnName }}
-          className={`w-9 h-9  rounded-full ${color}`}
+          className={`w-9 h-9 rounded-full ${color}`}
         />
       )}
     </div>
@@ -265,8 +196,10 @@ const Wall = ({
   horizontal?: boolean;
   hovered: boolean;
 }) => {
-  const color =
-    state != 0 ? "bg-yellow-500" : hovered ? "bg-yellow-300" : "bg-white-500";
+  let color = "bg-white-500";
+  if (state != 0) color = "bg-yellow-500";
+  if (hovered) color = "bg-yellow-300";
+
   const size = horizontal ? "w-12 h-4" : "h-12 w-4";
 
   return (
@@ -290,16 +223,16 @@ const Intersection = ({
   state: { row: number; col: number };
   hovered?: { row: number; col: number };
 }) => {
+  let color = "bg-white-500";
+  if (state.row == 1 || state.col == 1) {
+    color = "bg-yellow-500";
+  } else if (hovered && (hovered.row == 1 || hovered.col == 1)) {
+    color = "bg-yellow-300";
+  }
   return (
     <div
       id="intersection"
-      className={`${
-        state.row == 1 || state.col == 1
-          ? "bg-yellow-500"
-          : hovered && (hovered.row == 1 || hovered.col == 1)
-          ? "bg-yellow-300"
-          : "bg-white-500"
-      } w-4 h-4`}
+      className={`${color} w-4 h-4`}
       data-row={row}
       data-col={col}
     />
@@ -453,7 +386,6 @@ const getPossibleMoves = (
   let adjss = [];
   for (let { x, y } of adjs) {
     if (otherPawnPos.x == x && otherPawnPos.y == y) {
-      // TODO ver que pasa cuando no se puede ir mas del doble
       x = (otherPawnPos.x - pawnPos.x) * 2;
       y = (otherPawnPos.y - pawnPos.y) * 2;
       if (x > 0) {
@@ -518,3 +450,120 @@ const getPossibleMoves = (
 };
 
 export default App;
+
+const WallCol = ({
+  f,
+  col,
+  hoveredWall,
+}: {
+  f: Wall[];
+  col: number;
+  hoveredWall: { pos: PawnPos; wall: Wall } | null;
+}) => {
+  if (col >= 8) return;
+  return (
+    <div key={`walls-${col}`} className="flex flex-col-reverse">
+      {f.map((c, row) => {
+        return (
+          <Fragment key={`wall-${row}-${col}`}>
+            <Wall
+              state={c.col}
+              row={row}
+              col={col}
+              hovered={isWallHovered(hoveredWall, row, col)}
+            />
+            {row < 8 ? (
+              <Intersection
+                row={row}
+                col={col}
+                state={c}
+                hovered={
+                  hoveredWall &&
+                  hoveredWall.pos.x == row &&
+                  hoveredWall.pos.y == col
+                    ? hoveredWall.wall
+                    : undefined
+                }
+              />
+            ) : (
+              ""
+            )}
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
+const CellCol = ({
+  f,
+  col,
+  hoveredWall,
+  whitePawnPos,
+  blackPawnPos,
+  whitePawnPosAdj,
+}: {
+  f: Wall[];
+  col: number;
+  hoveredWall: { pos: PawnPos; wall: Wall } | null;
+  whitePawnPos: PawnPos;
+  blackPawnPos: PawnPos;
+  whitePawnPosAdj: PawnPos[];
+}) => {
+  return (
+    <div className="flex flex-col-reverse">
+      {f.map((c, row) => {
+        let wall;
+        if (row < 8)
+          wall = (
+            <Wall
+              state={c.row}
+              hovered={isWallHovered(hoveredWall, row, col, true)}
+              row={row}
+              col={col}
+              horizontal={true}
+            />
+          );
+
+        return (
+          <Fragment key={`cell-${row}-${col}`}>
+            <Cell
+              row={row}
+              col={col}
+              state={
+                compare(whitePawnPos, row, col)
+                  ? 1
+                  : compare(blackPawnPos, row, col)
+                  ? 2
+                  : 0
+              }
+              adjacents={whitePawnPosAdj}
+            />
+            {wall}
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
+const compare = (p: PawnPos, row: number, col: number) => {
+  return p.x == row && p.y == col;
+};
+
+const isWallHovered = (
+  hoveredWall: { pos: PawnPos; wall: Wall } | null,
+  row: number,
+  col: number,
+  horizontal?: boolean,
+): boolean => {
+  if (!hoveredWall) return false;
+  if (horizontal && !hoveredWall.wall.col) return false;
+  if (!horizontal && !hoveredWall.wall.row) return false;
+  if (hoveredWall.pos.x == row && hoveredWall.pos.y == col) return true;
+  if (horizontal && hoveredWall.pos.x == row && hoveredWall.pos.y == col - 1)
+    return true;
+  return (
+    !horizontal && hoveredWall.pos.x == row - 1 && hoveredWall.pos.y == col
+  );
+};
