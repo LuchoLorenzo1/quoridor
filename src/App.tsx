@@ -38,46 +38,53 @@ function App() {
       let adjs = getPossibleMoves(whitePawnPos, blackPawnPos, walls);
       setWhitePawnPosAdj(adjs);
       return;
-    }
-    setWhitePawnPosAdj([]);
-
-    if (
+    } else if (
       ["horizontal-wall", "vertical-wall", "intersection"].includes(target.id)
     ) {
-      const copy = CheckValidWalls(target.id, row, col, walls);
+      if (whitePawnPosAdj.length != 0) {
+        setWhitePawnPosAdj([]);
+        return;
+      }
+      const copy = PickWall(target.id, row, col, walls);
       if (copy && validateWalls(whitePawnPos, blackPawnPos, copy)) {
         setWalls(copy);
         setTurn(!turn);
       }
-      return;
-    }
-
-    document.startViewTransition(() => {
-      flushSync(() => {
-        if (turn) {
-          getPossibleMoves(whitePawnPos, blackPawnPos, walls).forEach(
-            ({ x, y }) => {
-              if (x == row && y == col) {
-                setTurn(!turn);
-                return setWhitePawnPos({ x: row, y: col });
-              }
-            },
-          );
-        } else {
-          getPossibleMoves(blackPawnPos, whitePawnPos, walls).forEach(
-            ({ x, y }) => {
-              if (x == row && y == col) {
-                setTurn(!turn);
-                setBlackPawnPos({ x: row, y: col });
-              }
-            },
-          );
-        }
+    } else if (target.id == "cell" || target.id == "ghostPawn") {
+      document.startViewTransition(() => {
+        flushSync(() => {
+          move(row, col);
+        });
       });
-    });
+    }
+    setWhitePawnPosAdj([]);
+  };
+
+  const move = (row: number, col: number) => {
+    if (turn) {
+      if (whitePawnPosAdj.length == 0)
+        // tiene que estar los ghostsPawn para poder mover
+        return;
+
+      getPossibleMoves(whitePawnPos, blackPawnPos, walls).forEach(
+        ({ x, y }) => {
+          if (x == row && y == col) setWhitePawnPos({ x: row, y: col });
+        },
+      );
+    } else {
+      getPossibleMoves(blackPawnPos, whitePawnPos, walls).forEach(
+        ({ x, y }) => {
+          if (x == row && y == col) setBlackPawnPos({ x: row, y: col });
+        },
+      );
+    }
+    setTurn(!turn);
   };
 
   const handleHover = (e: MouseEvent<HTMLDivElement>) => {
+    if (whitePawnPosAdj.length != 0)
+      // tiene que no estar los ghostsPawn para poder poner pared
+      return;
     const target = e.target as HTMLDivElement;
     const id = target.id;
     let row = +(target.getAttribute("data-row") || 1);
@@ -349,7 +356,7 @@ const getAdjacents = (x: number, y: number, walls: Wall[][]): PawnPos[] => {
   return adj;
 };
 
-const CheckValidWalls = (
+const PickWall = (
   id: string,
   row: number,
   col: number,
