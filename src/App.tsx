@@ -41,6 +41,7 @@ function App() {
       if (copy && validateWalls(whitePawnPos, blackPawnPos, copy)) {
         setWalls(copy);
         setTurn(!turn);
+		setHoveredWall(null)
       }
     } else if (
       target.id == "whitePawn" ||
@@ -54,6 +55,8 @@ function App() {
       setWhitePawnPosAdj(adjs);
       return;
     } else if (target.id == "cell" || target.id == "ghostPawn") {
+	  if (turn && whitePawnPosAdj.length == 0)
+		  return
       document.startViewTransition(() => {
         flushSync(() => {
           move(row, col);
@@ -65,10 +68,6 @@ function App() {
 
   const move = (row: number, col: number) => {
     if (turn) {
-      if (whitePawnPosAdj.length == 0)
-        // tiene que estar los ghostsPawn para poder mover
-        return;
-
       getPossibleMoves(whitePawnPos, blackPawnPos, walls).forEach(
         ({ x, y }) => {
           if (x == row && y == col) setWhitePawnPos({ x: row, y: col });
@@ -325,7 +324,7 @@ const pickVerticalWall = (
   row: number,
   col: number,
   walls: Wall[][],
-): { row: number; col: number } | null => {
+): Wall | null => {
   if (row > 7) row = 7;
   if (col > 7) col = 7;
 
@@ -351,7 +350,7 @@ const pickHorizontalWall = (
   row: number,
   col: number,
   walls: Wall[][],
-): { row: number; col: number } | null => {
+): Wall | null => {
   if (row > 7) row = 7;
   if (col > 7) col = 7;
 
