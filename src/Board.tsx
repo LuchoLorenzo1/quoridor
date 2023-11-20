@@ -137,6 +137,7 @@ const Board = ({
     <div
       onClick={(e) => handleClick(e)}
       onMouseOver={(e) => handleHover(e)}
+      onMouseOut={() => setHoveredWall(null)}
       className="flex"
     >
       {walls.map((f, col) => {
