@@ -48,7 +48,7 @@ export const pickWall = (
   row: number,
   col: number,
   walls: Wall[][],
-): Wall[][] | null => {
+): { walls: Wall[][]; row: number; col: number } | null => {
   if (id == "horizontal-wall" || id == "intersection") {
     let r = pickHorizontalWall(row, col, walls);
     if (!r) return null;
@@ -58,7 +58,7 @@ export const pickWall = (
     const copy: Wall[][] = structuredClone(walls);
     copy[col][row] = { row: 1, col: walls[col][row].col };
     copy[col + 1][row] = { row: 2, col: walls[col + 1][row].col };
-    return copy;
+    return { walls: copy, row, col };
   }
 
   if (id == "vertical-wall") {
@@ -70,7 +70,7 @@ export const pickWall = (
     const copy = structuredClone(walls);
     copy[col][row] = { row: walls[col][row].row, col: 1 };
     copy[col][row + 1] = { row: walls[col][row + 1].row, col: 2 };
-    return copy;
+    return { walls: copy, row, col };
   }
   return null;
 };
@@ -126,7 +126,6 @@ export const pickHorizontalWall = (
       return null;
     col -= 1;
   }
-
   return { row, col };
 };
 

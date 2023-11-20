@@ -61,12 +61,16 @@ const Board = ({
     if (WALLS_IDS.includes(target.id)) {
       if (currPawnPosAdj.length != 0) return setCurrPawnPosAdj([]);
 
-      const copy = pickWall(target.id, row, col, walls);
-      if (copy && validateWalls(pawns, copy)) {
+      const res = pickWall(target.id, row, col, walls);
+      if (res && validateWalls(pawns, res.walls)) {
         // document.startViewTransition(() => {
         // 	flushSync(() => wallCallback({ x: row, y: col }, copy[col][row], copy));
         // });
-        wallCallback({ x: row, y: col }, copy[col][row], copy);
+        wallCallback(
+          { x: res.row, y: res.col },
+          res.walls[res.col][res.row],
+          res.walls,
+        );
         setHoveredWall(null);
       }
     }

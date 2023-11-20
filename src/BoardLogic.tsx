@@ -82,21 +82,27 @@ export const BoardLogic = () => {
         )}
       </div>
       <div className="flex flex-col items-center justify-center h-[50%]">
-        <div className="bg-red-200 w-32 overflow-y-scroll flex-col flex-grow h-full">
+        <div className="w-52 bg-stone-600 overflow-y-scroll flex-col flex-grow h-full">
           {history &&
             history.length > 0 &&
-            history.map((m, i) => {
+            pairElements(history).map((m, i) => {
               return (
-                <h1
-                  className={activeMove - 1 == i ? "bg-red-500" : ""}
+                <div
+                  className={`flex gap-2 ${
+                    Math.floor((activeMove - 1) / 2) == i
+                      ? "text-black bg-white"
+                      : "text-white"
+                  }`}
                   key={`${i}`}
-                >{`${i}. ${m}`}</h1>
+                >
+                  <h2>{i + 1}.</h2>
+                  <h2>{m[0]}</h2>
+                  <h2>{m[1]}</h2>
+                </div>
               );
             })}
         </div>
-        <div className="flex gap-1">
-          <ControlToolBar control={control} />
-        </div>
+        <ControlToolBar control={control} />
       </div>
     </div>
   );
@@ -110,7 +116,7 @@ interface ActiveMoveControl {
 
 const ControlToolBar = ({ control }: { control: ActiveMoveControl }) => {
   return (
-    <>
+    <div className="flex gap-1">
       <button
         onClick={() => control.goFullBack()}
         className="px-3 py-1 bg-green-500 rounded-md"
@@ -135,14 +141,16 @@ const ControlToolBar = ({ control }: { control: ActiveMoveControl }) => {
       >
         {">>"}
       </button>
-    </>
+    </div>
   );
 };
 ConstantSourceNode;
 
 const columns = "abcdefghi";
 export const moveToString = (move: PawnPos, wall?: Wall): string => {
-  return `${columns[move.y]}${move.x + 1}${wall ? (wall.col ? "v" : "h") : ""}`;
+  return `${columns[move.y]}${move.x + 1}${
+    wall ? (wall.col == 1 ? "v" : "h") : ""
+  }`;
 };
 
 export const stringToMove = (move: string): { pos: PawnPos; wall?: Wall } => {

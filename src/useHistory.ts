@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { PawnPos, Wall } from "./Board";
 import {
   BLACK_START,
@@ -51,7 +51,7 @@ export const useHistory = ({
       if (wall?.col == 1) {
         w[pos.y][pos.x] = { col: 0, row: w[pos.y][pos.x].row };
         w[pos.y][pos.x + 1] = { col: 0, row: w[pos.y][pos.x + 1].row };
-      } else {
+      } else if (wall?.row == 1) {
         w[pos.y][pos.x] = { row: 0, col: w[pos.y][pos.x].col };
         w[pos.y + 1][pos.x] = { row: 0, col: w[pos.y + 1][pos.x].col };
       }
