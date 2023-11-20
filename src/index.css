@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-::view-transition-old(pawn),
-::view-transition-new(pawn) {
+::view-transition-old(whitePawn),
+::view-transition-new(whitePawn) {
   animation-duration: 0.1s;
 }

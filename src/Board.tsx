@@ -12,7 +12,7 @@ import {
 
 export interface BoardProps {
   moveCallback: (pos: PawnPos) => void;
-  wallCallback: (wall: Wall, copy: Wall[][]) => void;
+  wallCallback: (pos: PawnPos, wall: Wall, copy: Wall[][]) => void;
   turn: number;
   walls: Wall[][];
   pawns: Pawn[];
@@ -63,9 +63,10 @@ const Board = ({
 
       const copy = pickWall(target.id, row, col, walls);
       if (copy && validateWalls(pawns, copy)) {
-        document.startViewTransition(() => {
-          flushSync(() => wallCallback({ row, col }, copy));
-        });
+        // document.startViewTransition(() => {
+        // 	flushSync(() => wallCallback({ x: row, y: col }, copy[col][row], copy));
+        // });
+        wallCallback({ x: row, y: col }, copy[col][row], copy);
         setHoveredWall(null);
       }
     }
@@ -86,11 +87,12 @@ const Board = ({
 
     if (target.id == "cell" || target.id == "ghostPawn") {
       if (currPawnPosAdj.length == 0) return;
-      document.startViewTransition(() => {
-        flushSync(() => {
-          move(row, col);
-        });
-      });
+      // document.startViewTransition(() => {
+      // 	flushSync(() => {
+      // 		move(row, col);
+      // 	});
+      // });
+      move(row, col);
     }
 
     setCurrPawnPosAdj([]);

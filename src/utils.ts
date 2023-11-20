@@ -227,3 +227,12 @@ export const isWallHovered = (
     !horizontal && hoveredWall.pos.x == row - 1 && hoveredWall.pos.y == col
   );
 };
+
+export const matrix = (m: number, n: number): Wall[][] => {
+  return Array.from(
+    {
+      length: m,
+    },
+    () => new Array(n).fill({ row: 0, col: 0 }),
+  );
+};
