@@ -2,11 +2,7 @@ import { Pawn, PawnPos, Wall } from "./Board";
 
 export const validateWalls = (pawns: Pawn[], walls: Wall[][]): boolean => {
   for (let pawn of pawns) {
-    console.log(pawn);
-    if (!dfs(pawn, walls)) {
-      console.log("invalid");
-      return false;
-    }
+    if (!dfs(pawn, walls)) return false;
   }
   return true;
 };
