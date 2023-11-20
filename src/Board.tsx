@@ -85,7 +85,7 @@ const Board = ({
     }
 
     if (target.id == "cell" || target.id == "ghostPawn") {
-      if (turn && currPawnPosAdj.length == 0) return;
+      if (currPawnPosAdj.length == 0) return;
       document.startViewTransition(() => {
         flushSync(() => {
           move(row, col);
