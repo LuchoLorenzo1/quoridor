@@ -6,3 +6,22 @@
 ::view-transition-new(whitePawn) {
   animation-duration: 0.1s;
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-wrap {
+    text-wrap: wrap;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}

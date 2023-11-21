@@ -82,7 +82,7 @@ export const BoardLogic = () => {
         )}
       </div>
       <div className="flex flex-col items-center justify-center h-[50%]">
-        <div className="w-52 bg-stone-600 overflow-y-scroll flex-col flex-grow h-full">
+        <div className="w-52 bg-stone-600 no-scrollbar overflow-y-scroll flex-col flex-grow h-full">
           {history &&
             history.length > 0 &&
             pairElements(history).map((m, i) => {
@@ -102,41 +102,52 @@ export const BoardLogic = () => {
               );
             })}
         </div>
-        <ControlToolBar control={control} />
+        <ControlToolBar
+          control={control}
+          history={history}
+          activeMove={activeMove}
+        />
       </div>
     </div>
   );
 };
+
 interface ActiveMoveControl {
-  goFullBack: () => void;
-  goFullForward: () => void;
-  goForward: () => void;
-  goBack: () => void;
+  goForward: (i: number) => void;
+  goBack: (i: number) => void;
 }
 
-const ControlToolBar = ({ control }: { control: ActiveMoveControl }) => {
+const ControlToolBar = ({
+  control,
+  history,
+  activeMove,
+}: {
+  control: ActiveMoveControl;
+  history: string[];
+  activeMove: number;
+}) => {
   return (
     <div className="flex gap-1">
       <button
-        onClick={() => control.goFullBack()}
+        onClick={() => control.goBack(0)}
         className="px-3 py-1 bg-green-500 rounded-md"
       >
         {"<<"}
       </button>
       <button
-        onClick={() => control.goBack()}
+        onClick={() => control.goBack(activeMove - 1)}
         className="px-3 py-1 bg-green-500 rounded-md"
       >
         {"<"}
       </button>
       <button
-        onClick={() => control.goForward()}
+        onClick={() => control.goForward(activeMove + 1)}
         className="px-3 py-1 bg-green-500 rounded-md"
       >
         {">"}
       </button>
       <button
-        onClick={() => control.goFullForward()}
+        onClick={() => control.goForward(history.length)}
         className="px-3 py-1 bg-green-500 rounded-md"
       >
         {">>"}

@@ -6,7 +6,6 @@ import {
   moveToString,
   stringToMove,
 } from "./BoardLogic";
-import { flushSync } from "react-dom";
 
 export const useHistory = ({
   setWhitePawnPos,
@@ -20,30 +19,43 @@ export const useHistory = ({
   const [history, setHistory] = useState<string[]>([]);
   const [activeMove, setActiveMove] = useState<number>(0);
 
-  const goBack = () => {
+  const goBack = (i: number) => {
     if (activeMove == 0) return;
+    if (i >= activeMove) return;
 
-    setActiveMove((a) => a - 1);
-    let move = stringToMove(history[activeMove - 1]);
+    let wPos;
+    let bPos;
 
-    if (move.wall != undefined) {
-      return undoWallMove(move.pos, move.wall);
+    for (let a = activeMove; a > i; a--) {
+      let move = stringToMove(history[a - 1]);
+
+      if (move.wall != undefined) {
+        undoWallMove(move.pos, move.wall);
+        continue;
+      }
+
+      let x = a - 3;
+      while (x >= 0 && (history[x].includes("h") || history[x].includes("v")))
+        x -= 2;
+
+      let pos: PawnPos;
+      if (x < 0) {
+        pos = a % 2 == 0 ? BLACK_START : WHITE_START;
+      } else {
+        let move = stringToMove(history[x]);
+        pos = move.pos;
+      }
+
+      if (a % 2 == 0) {
+        bPos = pos;
+      } else {
+        wPos = pos;
+      }
     }
 
-    let i = activeMove - 3;
-    while (i >= 0 && (history[i].includes("h") || history[i].includes("v")))
-      i -= 2;
-
-    let pos: PawnPos;
-    if (i < 0) {
-      pos = activeMove % 2 == 0 ? BLACK_START : WHITE_START;
-    } else {
-      let move = stringToMove(history[i]);
-      pos = move.pos;
-    }
-
-    if (activeMove % 2 == 0) return setBlackPawnPos(pos);
-    return setWhitePawnPos(pos);
+    setActiveMove(i);
+    if (bPos) setBlackPawnPos(bPos);
+    if (wPos) setWhitePawnPos(wPos);
   };
 
   const undoWallMove = (pos: PawnPos, wall: Wall) => {
@@ -57,55 +69,59 @@ export const useHistory = ({
       }
       return w;
     });
-    return;
   };
 
-  const goForward = () => {
+  const goForward = (i: number) => {
     if (activeMove == history.length) return;
-    setActiveMove((a) => a + 1);
-    let move = stringToMove(history[activeMove]);
+    if (i <= activeMove) return;
 
-    if (move.wall) {
-      setWalls((w) => {
-        if (move.wall?.col == 1) {
-          w[move.pos.y][move.pos.x] = {
-            col: 1,
-            row: w[move.pos.y][move.pos.x].row,
-          };
-          w[move.pos.y][move.pos.x + 1] = {
-            col: 2,
-            row: w[move.pos.y][move.pos.x + 1].row,
-          };
-        } else {
-          w[move.pos.y][move.pos.x] = {
-            row: 1,
-            col: w[move.pos.y][move.pos.x].col,
-          };
-          w[move.pos.y + 1][move.pos.x] = {
-            row: 2,
-            col: w[move.pos.y + 1][move.pos.x].col,
-          };
-        }
-        return w;
-      });
-    } else if (activeMove % 2 == 0) {
-      setWhitePawnPos(move.pos);
-    } else {
-      setBlackPawnPos(move.pos);
+    let wPos;
+    let bPos;
+
+    for (let a = activeMove; a < i; a++) {
+      let move = stringToMove(history[a]);
+
+      if (move.wall) {
+        setWalls((w) => {
+          if (move.wall?.col == 1) {
+            w[move.pos.y][move.pos.x] = {
+              col: 1,
+              row: w[move.pos.y][move.pos.x].row,
+            };
+            w[move.pos.y][move.pos.x + 1] = {
+              col: 2,
+              row: w[move.pos.y][move.pos.x + 1].row,
+            };
+          } else {
+            w[move.pos.y][move.pos.x] = {
+              row: 1,
+              col: w[move.pos.y][move.pos.x].col,
+            };
+            w[move.pos.y + 1][move.pos.x] = {
+              row: 2,
+              col: w[move.pos.y + 1][move.pos.x].col,
+            };
+          }
+          return w;
+        });
+      } else if (a % 2 == 0) {
+        wPos = move.pos;
+      } else {
+        bPos = move.pos;
+      }
     }
+
+    setActiveMove(i);
+    if (bPos) setBlackPawnPos(bPos);
+    if (wPos) setWhitePawnPos(wPos);
   };
 
-  const goFullForward = () => {
-    for (let i = activeMove; i <= history.length; i++) {
-      goForward();
-    }
-  };
-
-  const goFullBack = () => {
-    for (let i = 0; i < history.length; i++) {
-      goBack();
-    }
-  };
+  // const goFullBack = () => {
+  // 	setBlackPawnPos(BLACK_START)
+  // 	setWhitePawnPos(WHITE_START)
+  // 	setWalls(matrix(9, 9))
+  // 	setActiveMove(0)
+  // };
 
   const moveCallbackHistory = (move: PawnPos, wall?: Wall) => {
     setHistory((h) => [...h, moveToString(move, wall)]);
@@ -131,6 +147,6 @@ export const useHistory = ({
     activeMove,
     setHistory,
     moveCallbackHistory,
-    control: { goFullBack, goFullForward, goForward, goBack },
+    control: { goForward, goBack },
   };
 };
