@@ -82,22 +82,24 @@ export const BoardLogic = () => {
         )}
       </div>
       <div className="flex flex-col items-center justify-center h-[50%]">
-        <div className="w-52 bg-stone-600 no-scrollbar overflow-y-scroll flex-col flex-grow h-full">
+        <div className="w-52 bg-stone-600 no-scrollbar overflow-y-scroll h-full px-2 text-white">
           {history &&
-            history.length > 0 &&
             pairElements(history).map((m, i) => {
               return (
-                <div
-                  className={`flex gap-2 ${
-                    Math.floor((activeMove - 1) / 2) == i
-                      ? "text-black bg-white"
-                      : "text-white"
-                  }`}
-                  key={`${i}`}
-                >
+                <div className="gap-2 flex items-center mb-1" key={i}>
                   <h2>{i + 1}.</h2>
-                  <h2>{m[0]}</h2>
-                  <h2>{m[1]}</h2>
+                  <MoveButton
+                    i={1 + i * 2}
+                    value={m[0]}
+                    activeMove={activeMove}
+                    control={control}
+                  />
+                  <MoveButton
+                    i={2 + i * 2}
+                    value={m[1]}
+                    activeMove={activeMove}
+                    control={control}
+                  />
                 </div>
               );
             })}
@@ -109,6 +111,31 @@ export const BoardLogic = () => {
         />
       </div>
     </div>
+  );
+};
+
+const MoveButton = ({
+  value,
+  activeMove,
+  i,
+  control,
+}: {
+  value: string;
+  activeMove: number;
+  i: number;
+  control: ActiveMoveControl;
+}) => {
+  return (
+    <button
+      onClick={() =>
+        i > activeMove ? control.goForward(i) : control.goBack(i)
+      }
+      className={`py-0.5 px-2 rounded-md ${
+        activeMove == i ? "text-black bg-white" : "hover:bg-slate-500"
+      }`}
+    >
+      {value}
+    </button>
   );
 };
 

@@ -116,13 +116,6 @@ export const useHistory = ({
     if (wPos) setWhitePawnPos(wPos);
   };
 
-  // const goFullBack = () => {
-  // 	setBlackPawnPos(BLACK_START)
-  // 	setWhitePawnPos(WHITE_START)
-  // 	setWalls(matrix(9, 9))
-  // 	setActiveMove(0)
-  // };
-
   const moveCallbackHistory = (move: PawnPos, wall?: Wall) => {
     setHistory((h) => [...h, moveToString(move, wall)]);
     setActiveMove((a) => a + 1);
