@@ -10,12 +10,13 @@ import {
   validateWalls,
 } from "./utils";
 
-export interface BoardProps {
+export interface BoardComponentProps {
   moveCallback: (pos: PawnPos) => void;
   wallCallback: (pos: PawnPos, wall: Wall, copy: Wall[][]) => void;
   turn: number;
   walls: Wall[][];
   pawns: Pawn[];
+  interactive: boolean;
 }
 
 export interface Pawn {
@@ -43,7 +44,8 @@ const Board = ({
   walls,
   moveCallback,
   wallCallback,
-}: BoardProps) => {
+  interactive,
+}: BoardComponentProps) => {
   const [hoveredWall, setHoveredWall] = useState<{
     pos: PawnPos;
     wall: Wall;
@@ -51,6 +53,7 @@ const Board = ({
   const [currPawnPosAdj, setCurrPawnPosAdj] = useState<PawnPos[]>([]);
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (!interactive) return;
     const target = e.target as HTMLDivElement;
     let _row = target.getAttribute("data-row");
     let _col = target.getAttribute("data-col");
@@ -115,7 +118,7 @@ const Board = ({
   };
 
   const handleHover = (e: MouseEvent<HTMLDivElement>) => {
-    if (currPawnPosAdj.length != 0) return;
+    if (!interactive || currPawnPosAdj.length != 0) return;
     const target = e.target as HTMLDivElement;
     const id = target.id;
     let _row = target.getAttribute("data-row");

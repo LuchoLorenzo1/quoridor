@@ -1,4 +1,11 @@
-import { useEffect, useState } from "react";
+import {
+  createRef,
+  useEffect,
+  useRef,
+  useState,
+  MouseEvent,
+  RefObject,
+} from "react";
 import Board, { Pawn, PawnPos, Wall } from "./Board";
 import { matrix } from "./utils";
 import { useHistory } from "./useHistory";
@@ -8,6 +15,7 @@ export const BLACK_START = { x: 8, y: 4 };
 
 export const BoardLogic = () => {
   const [turn, setTurn] = useState<number>(0);
+  const [interactive, setInteractive] = useState<boolean>(true);
   const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>(WHITE_START);
   const [blackPawnPos, setBlackPawnPos] = useState<PawnPos>(BLACK_START);
   const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
@@ -27,6 +35,10 @@ export const BoardLogic = () => {
     } else {
       setBlackPawnPos(pos);
       setTurn(0);
+    }
+    if (pawns[turn].end == pos.x) {
+      setWinner(turn);
+      setInteractive(false);
     }
     moveCallbackHistory(pos);
   };
@@ -53,26 +65,23 @@ export const BoardLogic = () => {
   };
 
   useEffect(() => {
-    pawns.forEach((pawn, i) => {
-      if (pawn.pos.x == pawn.end) {
-        setWinner(i);
-      }
-    });
-  }, [blackPawnPos, whitePawnPos]);
+    setInteractive(activeMove == history.length);
+  }, [activeMove]);
 
   return (
     <div className="flex justify-center items-center gap-5 h-full w-full">
       <div className="flex flex-col justify-center items-center gap-5">
         <h1>Turn: {turn == 0 ? "White" : "Black"}</h1>
-        {winner && <h1>{winner == 0 ? "White" : "Black"} Wins !</h1>}
+        {winner != null && <h1>{winner == 0 ? "White" : "Black"} Wins !</h1>}
         <Board
           turn={turn}
           moveCallback={moveCallback}
           wallCallback={wallCallback}
           walls={walls}
           pawns={pawns}
+          interactive={interactive}
         />
-        {winner && (
+        {winner != null && (
           <button
             onClick={() => restart()}
             className="px-5 py-2 bg-green-500 rounded-md"
@@ -81,35 +90,71 @@ export const BoardLogic = () => {
           </button>
         )}
       </div>
-      <div className="flex flex-col items-center justify-center h-[50%]">
-        <div className="w-52 bg-stone-600 no-scrollbar overflow-y-scroll h-full px-2 text-white">
-          {history &&
-            pairElements(history).map((m, i) => {
-              return (
-                <div className="gap-2 flex items-center mb-1" key={i}>
-                  <h2>{i + 1}.</h2>
-                  <MoveButton
-                    i={1 + i * 2}
-                    value={m[0]}
-                    activeMove={activeMove}
-                    control={control}
-                  />
-                  <MoveButton
-                    i={2 + i * 2}
-                    value={m[1]}
-                    activeMove={activeMove}
-                    control={control}
-                  />
-                </div>
-              );
-            })}
-        </div>
-        <ControlToolBar
-          control={control}
-          history={history}
-          activeMove={activeMove}
-        />
+      <GameMenu history={history} activeMove={activeMove} control={control} />
+    </div>
+  );
+};
+
+const GameMenu = ({
+  history,
+  activeMove,
+  control,
+}: {
+  history: string[];
+  activeMove: number;
+  control: ActiveMoveControl;
+}) => {
+  if (!history) return;
+  const pairs = pairElements(history);
+
+  const refs = pairs.reduce<Record<number, RefObject<HTMLDivElement>>>(
+    (acc, _, i) => {
+      acc[i] = createRef<HTMLDivElement>();
+      return acc;
+    },
+    {},
+  );
+
+  useEffect(() => {
+    let refIndex = activeMove == 0 ? 0 : Math.floor((activeMove - 1) / 2);
+    if (refIndex < 0 || refIndex >= history.length) return;
+
+    let divRef = refs[refIndex].current;
+    if (divRef != null)
+      divRef.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }, [activeMove]);
+
+  return (
+    <div className="flex flex-col items-center justify-center h-[50%]">
+      <div className="w-52 bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white">
+        {pairs.map((m, i) => {
+          return (
+            <div ref={refs[i]} className="gap-2 flex items-center mb-1" key={i}>
+              <h2>{i + 1}.</h2>
+              <MoveButton
+                i={1 + i * 2}
+                value={m[0]}
+                activeMove={activeMove}
+                control={control}
+              />
+              <MoveButton
+                i={2 + i * 2}
+                value={m[1]}
+                activeMove={activeMove}
+                control={control}
+              />
+            </div>
+          );
+        })}
       </div>
+      <ControlToolBar
+        control={control}
+        history={history}
+        activeMove={activeMove}
+      />
     </div>
   );
 };
@@ -182,7 +227,6 @@ const ControlToolBar = ({
     </div>
   );
 };
-ConstantSourceNode;
 
 const columns = "abcdefghi";
 export const moveToString = (move: PawnPos, wall?: Wall): string => {
