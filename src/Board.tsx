@@ -172,11 +172,12 @@ const PawnComponent = ({ pawn }: { pawn: Pawn }) => {
       data-col={pawn.pos.y}
       id={pawn.name}
       style={{ viewTransitionName: pawn.name }}
-      className={`w-9 h-9 rounded-full ${pawn.color}`}
+      className={`z-50 w-9 h-9 rounded-full ${pawn.color}`}
     />
   );
 };
 
+const columns = "abcdefghi";
 const Cell = ({
   row,
   col,
@@ -190,12 +191,30 @@ const Cell = ({
   return (
     <div
       key={`${row}-${col}`}
-      className={`flex items-center justify-center w-12 h-12 ${cellColor}`}
+      className={`relative flex items-center justify-center w-12 h-12 ${cellColor}`}
       data-row={row}
       data-col={col}
       id="cell"
     >
       {children}
+      {col == 0 && (
+        <h5
+          className={`select-none text-xs absolute top-0 left-0 mx-0.5 font-bold ${
+            !((row + col) % 2) ? "text-zinc-600" : "text-zinc-300"
+          }`}
+        >
+          {row + 1}
+        </h5>
+      )}
+      {row == 0 && (
+        <h5
+          className={`select-none text-xs absolute bottom-0 right-0 mx-0.5 font-bold ${
+            !((row + col) % 2) ? "text-zinc-600" : "text-zinc-300"
+          }`}
+        >
+          {columns[col]}
+        </h5>
+      )}
     </div>
   );
 };

@@ -1,11 +1,4 @@
-import {
-  createRef,
-  useEffect,
-  useRef,
-  useState,
-  MouseEvent,
-  RefObject,
-} from "react";
+import { createRef, useEffect, useState, RefObject } from "react";
 import Board, { Pawn, PawnPos, Wall } from "./Board";
 import { matrix } from "./utils";
 import { useHistory } from "./useHistory";
@@ -26,6 +19,11 @@ export const BoardLogic = () => {
       setBlackPawnPos,
       setWalls,
     });
+
+  const pawns: Pawn[] = [
+    { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
+    { pos: blackPawnPos, name: "blackPawn", end: 0, color: "bg-black" },
+  ];
 
   const moveCallback = (pos: PawnPos) => {
     if (activeMove != history.length) return;
@@ -50,17 +48,13 @@ export const BoardLogic = () => {
     moveCallbackHistory(pos, w);
   };
 
-  const pawns: Pawn[] = [
-    { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
-    { pos: blackPawnPos, name: "blackPawn", end: 0, color: "bg-black" },
-  ];
-
   const restart = () => {
     setWhitePawnPos(WHITE_START);
     setBlackPawnPos(BLACK_START);
     setTurn(0);
     setWalls(matrix(9, 9));
     setWinner(null);
+    setInteractive(true);
     setHistory([]);
   };
 
@@ -133,7 +127,7 @@ const GameMenu = ({
         {pairs.map((m, i) => {
           return (
             <div ref={refs[i]} className="gap-2 flex items-center mb-1" key={i}>
-              <h2>{i + 1}.</h2>
+              <h2 className="select-none">{i + 1}.</h2>
               <MoveButton
                 i={1 + i * 2}
                 value={m[0]}
@@ -175,7 +169,7 @@ const MoveButton = ({
       onClick={() =>
         i > activeMove ? control.goForward(i) : control.goBack(i)
       }
-      className={`py-0.5 px-2 rounded-md ${
+      className={`select-none py-0.5 px-2 rounded-md ${
         activeMove == i ? "text-black bg-white" : "hover:bg-slate-500"
       }`}
     >
@@ -202,25 +196,25 @@ const ControlToolBar = ({
     <div className="flex gap-1">
       <button
         onClick={() => control.goBack(0)}
-        className="px-3 py-1 bg-green-500 rounded-md"
+        className="select-none px-3 py-1 bg-green-500 rounded-md"
       >
         {"<<"}
       </button>
       <button
         onClick={() => control.goBack(activeMove - 1)}
-        className="px-3 py-1 bg-green-500 rounded-md"
+        className="select-none px-3 py-1 bg-green-500 rounded-md"
       >
         {"<"}
       </button>
       <button
         onClick={() => control.goForward(activeMove + 1)}
-        className="px-3 py-1 bg-green-500 rounded-md"
+        className="select-none px-3 py-1 bg-green-500 rounded-md"
       >
         {">"}
       </button>
       <button
         onClick={() => control.goForward(history.length)}
-        className="px-3 py-1 bg-green-500 rounded-md"
+        className="select-none px-3 py-1 bg-green-500 rounded-md"
       >
         {">>"}
       </button>
