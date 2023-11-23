@@ -137,23 +137,26 @@ export const useHistory = ({
     setActiveMove(activeMoveRef.current + 1);
   };
 
-  useEffect(() => {
-    let keydown = false;
-    addEventListener("keydown", (e) => {
-      if (keydown) return;
-      keydown = true;
-      setTimeout(() => (keydown = false), 50);
+  let keydown = false;
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (keydown) return;
+    keydown = true;
+    setTimeout(() => (keydown = false), 50);
 
-      if (e.key == "ArrowLeft") {
-        goBack(activeMoveRef.current - 1);
-      } else if (e.key == "ArrowRight") {
-        goForward(activeMoveRef.current + 1);
-      } else if (e.key == "ArrowUp") {
-        goForward(historyRef.current.length);
-      } else if (e.key == "ArrowDown") {
-        goBack(0);
-      }
-    });
+    if (e.key == "ArrowLeft") {
+      goBack(activeMoveRef.current - 1);
+    } else if (e.key == "ArrowRight") {
+      goForward(activeMoveRef.current + 1);
+    } else if (e.key == "ArrowUp") {
+      goForward(historyRef.current.length);
+    } else if (e.key == "ArrowDown") {
+      goBack(0);
+    }
+  };
+
+  useEffect(() => {
+    addEventListener("keydown", handleKeyDown);
+    return () => removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return {
