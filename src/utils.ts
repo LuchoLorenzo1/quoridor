@@ -84,7 +84,7 @@ export const pickVerticalWall = (
   if (col > 7) col = 7;
 
   if (walls[col][row + 1].col == 1) {
-    if (row >= 1 && walls[col][row - 1].row == 0) {
+    if (row >= 1 && walls[col][row - 1].row != 1) {
       row -= 1;
     } else {
       return null;
@@ -110,7 +110,7 @@ export const pickHorizontalWall = (
   if (col > 7) col = 7;
 
   if (walls[col + 1][row].row == 1) {
-    if (col >= 1 && walls[col - 1][row].col == 0) {
+    if (col >= 1 && walls[col - 1][row].col != 1) {
       col -= 1;
     } else {
       return null;
