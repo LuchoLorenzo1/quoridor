@@ -1,4 +1,12 @@
-import { Fragment, MouseEvent, ReactNode, useState } from "react";
+import {
+  Fragment,
+  MouseEvent,
+  DragEvent,
+  ReactNode,
+  useState,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { flushSync } from "react-dom";
 import {
   compare,
@@ -51,6 +59,9 @@ const Board = ({
     wall: Wall;
   } | null>(null);
   const [currPawnPosAdj, setCurrPawnPosAdj] = useState<PawnPos[]>([]);
+  const [currentDragingCell, setCurrentDraggingCell] = useState<PawnPos | null>(
+    null,
+  );
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     if (!interactive) return;
@@ -140,11 +151,54 @@ const Board = ({
     }
   };
 
+  const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const id = target.id;
+    let _row = target.getAttribute("data-row");
+    let _col = target.getAttribute("data-col");
+    if (!_row || !_col || currentDragingCell == null) return;
+    if (id != "cell" && id != "ghostPawn") return;
+
+    let row = +_row;
+    let col = +_col;
+    setCurrentDraggingCell({ x: row, y: col });
+  };
+
+  const handleDragEnd = (e: DragEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    if (target.id != pawns[turn].name || currentDragingCell == null) return;
+    move(currentDragingCell.x, currentDragingCell.y);
+    setCurrentDraggingCell(null);
+    setCurrPawnPosAdj([]);
+  };
+
+  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    let _row = target.getAttribute("data-row");
+    let _col = target.getAttribute("data-col");
+    if (target.id != pawns[turn].name || !_row || !_col)
+      return e.preventDefault();
+    let row = +_row;
+    let col = +_col;
+    e.dataTransfer.setDragImage(document.createElement("span"), 0, 0);
+
+    setCurrentDraggingCell({ x: row, y: col });
+    let adjs = getPossibleMoves(
+      pawns[turn].pos,
+      pawns[turn == 0 ? 1 : 0].pos,
+      walls,
+    );
+    return setCurrPawnPosAdj(adjs);
+  };
+
   return (
     <div
       onClick={(e) => handleClick(e)}
       onMouseOver={(e) => handleHover(e)}
       onMouseOut={() => setHoveredWall(null)}
+      onDragEnter={handleDragEnter}
+      onDragEnd={handleDragEnd}
+      onDragStart={handleDragStart}
       className="flex"
     >
       {walls.map((f, col) => {
@@ -166,26 +220,37 @@ const Board = ({
 };
 
 const PawnComponent = ({ pawn }: { pawn: Pawn }) => {
+  const [dragging, setDragging] = useState(false);
+
+  let color = pawn.color;
+  if (pawn.name == "ghostPawn") {
+    if (dragging) color = "bg-yellow-500";
+    color += " hover:bg-yellow-500";
+  }
+
   return (
     <div
       data-row={pawn.pos.x}
       data-col={pawn.pos.y}
       id={pawn.name}
       style={{ viewTransitionName: pawn.name }}
-      className={`z-50 w-9 h-9 rounded-full ${pawn.color}`}
+      className={`z-50 w-9 h-9 rounded-full ${color}`}
+      draggable
+      onDragEnter={() => setDragging(true)}
+      onDragLeave={() => setDragging(false)}
     />
   );
 };
 
 const columns = "abcdefghi";
-const Cell = ({
+const CellComponent = ({
   row,
   col,
-  children,
+  pawn,
 }: {
   row: number;
   col: number;
-  children: ReactNode;
+  pawn: Pawn;
 }) => {
   let cellColor = !((row + col) % 2) ? "bg-zinc-300" : "bg-zinc-600";
   return (
@@ -196,7 +261,7 @@ const Cell = ({
       data-col={col}
       id="cell"
     >
-      {children}
+      {pawn ? <PawnComponent pawn={pawn} /> : ""}
       {col == 0 && (
         <h5
           className={`select-none text-xs absolute top-0 left-0 mx-0.5 font-bold ${
@@ -365,10 +430,11 @@ const CellCol = ({
 
         return (
           <Fragment key={`cell-${row}-${col}`}>
-            <Cell row={row} col={col}>
-              {ghostPawn ? <PawnComponent pawn={ghostPawn} /> : ""}
-              {pawn ? <PawnComponent pawn={pawn} /> : ""}
-            </Cell>
+            <CellComponent
+              row={row}
+              col={col}
+              pawn={pawn || ghostPawn || null}
+            ></CellComponent>
             {wall}
           </Fragment>
         );

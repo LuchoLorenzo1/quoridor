@@ -13,12 +13,18 @@ export const BoardLogic = () => {
   const [blackPawnPos, setBlackPawnPos] = useState<PawnPos>(BLACK_START);
   const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
   const [winner, setWinner] = useState<number | null>(null);
-  const { history, setHistory, moveCallbackHistory, activeMove, control } =
-    useHistory({
-      setWhitePawnPos,
-      setBlackPawnPos,
-      setWalls,
-    });
+  const {
+    history,
+    setHistory,
+    moveCallbackHistory,
+    activeMove,
+    setActiveMove,
+    control,
+  } = useHistory({
+    setWhitePawnPos,
+    setBlackPawnPos,
+    setWalls,
+  });
 
   const pawns: Pawn[] = [
     { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
@@ -56,6 +62,7 @@ export const BoardLogic = () => {
     setWinner(null);
     setInteractive(true);
     setHistory([]);
+    setActiveMove(0);
   };
 
   useEffect(() => {

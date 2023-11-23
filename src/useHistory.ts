@@ -162,6 +162,7 @@ export const useHistory = ({
   return {
     history,
     activeMove,
+    setActiveMove,
     setHistory,
     moveCallbackHistory,
     control: { goForward, goBack },
