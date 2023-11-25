@@ -1,19 +1,27 @@
+import { CellState } from "../Board";
+
 const Wall = ({
-  state,
   row,
   col,
+  state,
   horizontal = false,
-  hovered,
 }: {
-  state: number;
   row: number;
   col: number;
+  state: CellState;
   horizontal?: boolean;
-  hovered: boolean;
 }) => {
   let color = "bg-white-500";
-  if (state != 0) color = "bg-yellow-500";
-  if (hovered) color = "bg-yellow-300";
+  if (horizontal && state.row != 0) color = "bg-yellow-500";
+  if (!horizontal && state.col != 0) color = "bg-yellow-500";
+
+  if (state.hoveredWall) {
+    if (horizontal && state.hoveredWall.toLowerCase() == "h") {
+      color = "bg-yellow-300";
+    } else if (!horizontal && state.hoveredWall.toLowerCase() == "v") {
+      color = "bg-yellow-300";
+    }
+  }
 
   const size = horizontal ? "w-12 h-4" : "h-12 w-4";
 

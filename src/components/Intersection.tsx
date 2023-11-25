@@ -1,20 +1,21 @@
+import { CellState } from "../Board";
+
 const Intersection = ({
   row,
   col,
   state,
-  hovered,
 }: {
   row: number;
   col: number;
-  state: { row: number; col: number };
-  hovered: boolean;
+  state: CellState;
 }) => {
   let color = "bg-white-500";
   if (state.row == 1 || state.col == 1) {
     color = "bg-yellow-500";
-  } else if (hovered) {
+  } else if (state.hoveredWall == "v" || state.hoveredWall == "h") {
     color = "bg-yellow-300";
   }
+
   return (
     <div
       id="intersection"

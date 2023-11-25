@@ -1,12 +1,4 @@
-import {
-  Fragment,
-  MouseEvent,
-  DragEvent,
-  useState,
-  Dispatch,
-  SetStateAction,
-  useRef,
-} from "react";
+import { Fragment, MouseEvent, useState } from "react";
 import {
   compare,
   getPossibleMoves,
@@ -45,6 +37,13 @@ export interface Wall {
   col: number;
 }
 
+export interface CellState {
+  pawn?: Pawn;
+  hoveredWall: string;
+  row: number;
+  col: number;
+}
+
 const WALLS_IDS = ["horizontal-wall", "vertical-wall", "intersection"];
 
 const Board = ({
@@ -57,7 +56,7 @@ const Board = ({
 }: BoardComponentProps) => {
   const [hoveredWall, setHoveredWall] = useState<{
     pos: PawnPos;
-    wall: Wall;
+    wall: string;
   } | null>(null);
   const [currPawnPosAdj, setCurrPawnPosAdj] = useState<PawnPos[]>([]);
   const { handleDragStart, handleDragEnd, handleDragEnter } = useDragging(
@@ -115,6 +114,7 @@ const Board = ({
         pawns[turn == 0 ? 1 : 0].pos,
         walls,
       );
+
       return setCurrPawnPosAdj(adjs);
     }
 
@@ -139,15 +139,38 @@ const Board = ({
     if (id == "horizontal-wall" || id == "intersection") {
       let r = pickHorizontalWall(row, col, walls);
       if (!r) return setHoveredWall(null);
-      setHoveredWall({ pos: { x: r.row, y: r.col }, wall: { row: 0, col: 1 } });
+      setHoveredWall({ pos: { x: r.row, y: r.col }, wall: "h" });
     } else if (id == "vertical-wall") {
       let r = pickVerticalWall(row, col, walls);
       if (!r) return setHoveredWall(null);
-      setHoveredWall({ pos: { x: r.row, y: r.col }, wall: { row: 1, col: 0 } });
+      setHoveredWall({ pos: { x: r.row, y: r.col }, wall: "v" });
     } else {
       return setHoveredWall(null);
     }
   };
+
+  let matrix = structuredClone(walls) as CellState[][];
+  for (let pawn of pawns) {
+    matrix[pawn.pos.y][pawn.pos.x].pawn = pawn;
+  }
+
+  for (let pawn of currPawnPosAdj) {
+    matrix[pawn.y][pawn.x].pawn = {
+      pos: { x: pawn.x, y: pawn.y },
+      name: "ghostPawn",
+      color: "bg-neutral-400",
+    };
+  }
+
+  if (hoveredWall) {
+    if (hoveredWall.wall == "h") {
+      matrix[hoveredWall.pos.y][hoveredWall.pos.x].hoveredWall = "h";
+      matrix[hoveredWall.pos.y + 1][hoveredWall.pos.x].hoveredWall = "H";
+    } else if (hoveredWall.wall == "v") {
+      matrix[hoveredWall.pos.y][hoveredWall.pos.x].hoveredWall = "v";
+      matrix[hoveredWall.pos.y][hoveredWall.pos.x + 1].hoveredWall = "V";
+    }
+  }
 
   return (
     <div
@@ -159,17 +182,11 @@ const Board = ({
       onDragStart={handleDragStart}
       className="flex"
     >
-      {walls.map((f, col) => {
+      {matrix.map((f, col) => {
         return (
-          <Fragment key={`col-${col}`}>
-            <CellCol
-              col={col}
-              f={f}
-              hoveredWall={hoveredWall}
-              currPawnPosAdj={currPawnPosAdj}
-              pawns={pawns}
-            />
-            <WallCol col={col} f={f} hoveredWall={hoveredWall} />
+          <Fragment key={col}>
+            <CellCol col={col} f={f} />
+            <WallCol col={col} f={f} />
           </Fragment>
         );
       })}

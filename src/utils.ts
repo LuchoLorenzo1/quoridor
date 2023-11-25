@@ -224,10 +224,14 @@ export const isWallHovered = (
 };
 
 export const matrix = (m: number, n: number): Wall[][] => {
-  return Array.from(
-    {
-      length: m,
-    },
-    () => new Array(n).fill({ row: 0, col: 0 }),
-  );
+  let _matrix: Wall[][] = [];
+  for (let i = 0; i < m; i++) {
+    const row = [];
+    for (let j = 0; j < n; j++) {
+      let c: Wall = { row: 0, col: 0 };
+      row.push(c);
+    }
+    _matrix.push(row);
+  }
+  return _matrix;
 };

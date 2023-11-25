@@ -9,7 +9,7 @@ const CellComponent = ({
 }: {
   row: number;
   col: number;
-  pawn: Pawn | null;
+  pawn?: Pawn;
 }) => {
   let cellColor = (row + col) % 2 ? "bg-zinc-600" : "bg-zinc-300";
   return (
