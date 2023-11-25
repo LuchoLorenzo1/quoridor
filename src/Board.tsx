@@ -1,22 +1,14 @@
-import {
-  Fragment,
-  MouseEvent,
-  DragEvent,
-  ReactNode,
-  useState,
-  Dispatch,
-  SetStateAction,
-} from "react";
-import { flushSync } from "react-dom";
+import { Fragment, MouseEvent, DragEvent, useState } from "react";
 import {
   compare,
   getPossibleMoves,
-  isWallHovered,
   pickHorizontalWall,
   pickVerticalWall,
   pickWall,
   validateWalls,
 } from "./utils";
+import CellCol from "./components/CellCol";
+import WallCol from "./components/WallCol";
 
 export interface BoardComponentProps {
   moveCallback: (pos: PawnPos) => void;
@@ -77,9 +69,6 @@ const Board = ({
 
       const res = pickWall(target.id, row, col, walls);
       if (res && validateWalls(pawns, res.walls)) {
-        // document.startViewTransition(() => {
-        // 	flushSync(() => wallCallback({ x: row, y: col }, copy[col][row], copy));
-        // });
         wallCallback(
           { x: res.row, y: res.col },
           res.walls[res.col][res.row],
@@ -105,11 +94,6 @@ const Board = ({
 
     if (target.id == "cell" || target.id == "ghostPawn") {
       if (currPawnPosAdj.length == 0) return;
-      // document.startViewTransition(() => {
-      // 	flushSync(() => {
-      // 		move(row, col);
-      // 	});
-      // });
       move(row, col);
     }
 
@@ -212,230 +196,6 @@ const Board = ({
               pawns={pawns}
             />
             <WallCol col={col} f={f} hoveredWall={hoveredWall} />
-          </Fragment>
-        );
-      })}
-    </div>
-  );
-};
-
-const PawnComponent = ({ pawn }: { pawn: Pawn }) => {
-  const [dragging, setDragging] = useState(false);
-
-  let color = pawn.color;
-  if (pawn.name == "ghostPawn") {
-    if (dragging) color = "bg-yellow-500";
-    color += " hover:bg-yellow-500";
-  }
-
-  return (
-    <div
-      data-row={pawn.pos.x}
-      data-col={pawn.pos.y}
-      id={pawn.name}
-      style={{ viewTransitionName: pawn.name }}
-      className={`z-50 w-9 h-9 rounded-full ${color}`}
-      draggable
-      onDragEnter={() => setDragging(true)}
-      onDragLeave={() => setDragging(false)}
-    />
-  );
-};
-
-const columns = "abcdefghi";
-const CellComponent = ({
-  row,
-  col,
-  pawn,
-}: {
-  row: number;
-  col: number;
-  pawn: Pawn;
-}) => {
-  let cellColor = !((row + col) % 2) ? "bg-zinc-300" : "bg-zinc-600";
-  return (
-    <div
-      key={`${row}-${col}`}
-      className={`relative flex items-center justify-center w-12 h-12 ${cellColor}`}
-      data-row={row}
-      data-col={col}
-      id="cell"
-    >
-      {pawn ? <PawnComponent pawn={pawn} /> : ""}
-      {col == 0 && (
-        <h5
-          className={`select-none text-xs absolute top-0 left-0 mx-0.5 font-bold ${
-            !((row + col) % 2) ? "text-zinc-600" : "text-zinc-300"
-          }`}
-        >
-          {row + 1}
-        </h5>
-      )}
-      {row == 0 && (
-        <h5
-          className={`select-none text-xs absolute bottom-0 right-0 mx-0.5 font-bold ${
-            !((row + col) % 2) ? "text-zinc-600" : "text-zinc-300"
-          }`}
-        >
-          {columns[col]}
-        </h5>
-      )}
-    </div>
-  );
-};
-
-const Wall = ({
-  state,
-  row,
-  col,
-  horizontal = false,
-  hovered,
-}: {
-  state: number;
-  row: number;
-  col: number;
-  horizontal?: boolean;
-  hovered: boolean;
-}) => {
-  let color = "bg-white-500";
-  if (state != 0) color = "bg-yellow-500";
-  if (hovered) color = "bg-yellow-300";
-
-  const size = horizontal ? "w-12 h-4" : "h-12 w-4";
-
-  return (
-    <div
-      className={`${color} ${size}`}
-      id={horizontal ? `horizontal-wall` : `vertical-wall`}
-      data-row={row}
-      data-col={col}
-    />
-  );
-};
-
-const Intersection = ({
-  row,
-  col,
-  state,
-  hovered,
-}: {
-  row: number;
-  col: number;
-  state: { row: number; col: number };
-  hovered: boolean;
-}) => {
-  let color = "bg-white-500";
-  if (state.row == 1 || state.col == 1) {
-    color = "bg-yellow-500";
-  } else if (hovered) {
-    color = "bg-yellow-300";
-  }
-  return (
-    <div
-      id="intersection"
-      className={`${color} w-4 h-4`}
-      data-row={row}
-      data-col={col}
-    />
-  );
-};
-
-const WallCol = ({
-  f,
-  col,
-  hoveredWall,
-}: {
-  f: Wall[];
-  col: number;
-  hoveredWall: { pos: PawnPos; wall: Wall } | null;
-}) => {
-  if (col >= 8) return;
-
-  return (
-    <div key={`walls-${col}`} className="flex flex-col-reverse">
-      {f.map((c, row) => {
-        return (
-          <Fragment key={`wall-${row}-${col}`}>
-            <Wall
-              state={c.col}
-              row={row}
-              col={col}
-              hovered={isWallHovered(hoveredWall, row, col)}
-            />
-            {row < 8 && (
-              <Intersection
-                row={row}
-                col={col}
-                state={c}
-                hovered={
-                  !!hoveredWall &&
-                  hoveredWall.pos.x == row &&
-                  hoveredWall.pos.y == col
-                }
-              />
-            )}
-          </Fragment>
-        );
-      })}
-    </div>
-  );
-};
-
-const CellCol = ({
-  f,
-  col,
-  hoveredWall,
-  pawns,
-  currPawnPosAdj,
-}: {
-  f: Wall[];
-  col: number;
-  hoveredWall: { pos: PawnPos; wall: Wall } | null;
-  pawns: Pawn[];
-  currPawnPosAdj: PawnPos[];
-}) => {
-  return (
-    <div className="flex flex-col-reverse">
-      {f.map((c, row) => {
-        let wall;
-        if (row < 8)
-          wall = (
-            <Wall
-              state={c.row}
-              hovered={isWallHovered(hoveredWall, row, col, true)}
-              row={row}
-              col={col}
-              horizontal={true}
-            />
-          );
-
-        let ghostPawn: Pawn | null = null;
-        for (let i of currPawnPosAdj) {
-          if (i.x == row && i.y == col) {
-            ghostPawn = {
-              pos: { x: row, y: col },
-              name: "ghostPawn",
-              color: "bg-neutral-400",
-            };
-            break;
-          }
-        }
-
-        let pawn: Pawn | null = null;
-        for (let i of pawns) {
-          if (i.pos.x == row && i.pos.y == col) {
-            pawn = i;
-          }
-        }
-
-        return (
-          <Fragment key={`cell-${row}-${col}`}>
-            <CellComponent
-              row={row}
-              col={col}
-              pawn={pawn || ghostPawn || null}
-            ></CellComponent>
-            {wall}
           </Fragment>
         );
       })}
