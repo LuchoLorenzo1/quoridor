@@ -1,4 +1,12 @@
-import { Fragment, MouseEvent, DragEvent, useState } from "react";
+import {
+  Fragment,
+  MouseEvent,
+  DragEvent,
+  useState,
+  Dispatch,
+  SetStateAction,
+  useRef,
+} from "react";
 import {
   compare,
   getPossibleMoves,
@@ -9,6 +17,7 @@ import {
 } from "./utils";
 import CellCol from "./components/CellCol";
 import WallCol from "./components/WallCol";
+import useDragging from "./hooks/useDragging";
 
 export interface BoardComponentProps {
   moveCallback: (pos: PawnPos) => void;
@@ -51,9 +60,26 @@ const Board = ({
     wall: Wall;
   } | null>(null);
   const [currPawnPosAdj, setCurrPawnPosAdj] = useState<PawnPos[]>([]);
-  const [currentDragingCell, setCurrentDraggingCell] = useState<PawnPos | null>(
-    null,
+  const { handleDragStart, handleDragEnd, handleDragEnter } = useDragging(
+    pawns,
+    walls,
+    turn,
+    move,
+    setCurrPawnPosAdj,
   );
+
+  function move(row: number, col: number) {
+    getPossibleMoves(
+      pawns[turn].pos,
+      pawns[turn == 0 ? 1 : 0].pos,
+      walls,
+    ).forEach(({ x, y }) => {
+      if (x == row && y == col) {
+        moveCallback({ x, y });
+        setCurrPawnPosAdj([]);
+      }
+    });
+  }
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     if (!interactive) return;
@@ -100,18 +126,6 @@ const Board = ({
     setCurrPawnPosAdj([]);
   };
 
-  const move = (row: number, col: number) => {
-    getPossibleMoves(
-      pawns[turn].pos,
-      pawns[turn == 0 ? 1 : 0].pos,
-      walls,
-    ).forEach(({ x, y }) => {
-      if (x == row && y == col) {
-        moveCallback({ x, y });
-      }
-    });
-  };
-
   const handleHover = (e: MouseEvent<HTMLDivElement>) => {
     if (!interactive || currPawnPosAdj.length != 0) return;
     const target = e.target as HTMLDivElement;
@@ -133,46 +147,6 @@ const Board = ({
     } else {
       return setHoveredWall(null);
     }
-  };
-
-  const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    const id = target.id;
-    let _row = target.getAttribute("data-row");
-    let _col = target.getAttribute("data-col");
-    if (!_row || !_col || currentDragingCell == null) return;
-    if (id != "cell" && id != "ghostPawn") return;
-
-    let row = +_row;
-    let col = +_col;
-    setCurrentDraggingCell({ x: row, y: col });
-  };
-
-  const handleDragEnd = (e: DragEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    if (target.id != pawns[turn].name || currentDragingCell == null) return;
-    move(currentDragingCell.x, currentDragingCell.y);
-    setCurrentDraggingCell(null);
-    setCurrPawnPosAdj([]);
-  };
-
-  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    let _row = target.getAttribute("data-row");
-    let _col = target.getAttribute("data-col");
-    if (target.id != pawns[turn].name || !_row || !_col)
-      return e.preventDefault();
-    let row = +_row;
-    let col = +_col;
-    e.dataTransfer.setDragImage(document.createElement("span"), 0, 0);
-
-    setCurrentDraggingCell({ x: row, y: col });
-    let adjs = getPossibleMoves(
-      pawns[turn].pos,
-      pawns[turn == 0 ? 1 : 0].pos,
-      walls,
-    );
-    return setCurrPawnPosAdj(adjs);
   };
 
   return (
