@@ -63,13 +63,12 @@ const Board = ({
     wall: string;
   } | null>(null);
   const [currPawnPosAdj, setCurrPawnPosAdj] = useState<PawnPos[]>([]);
-  const { handleDragStart, handleDragEnd, handleDragEnter } = useDragging(
-    pawns,
-    walls,
-    turn,
-    move,
-    setCurrPawnPosAdj,
-  );
+  const {
+    currentDraggingCell,
+    handleDragStart,
+    handleDragEnd,
+    handleDragEnter,
+  } = useDragging(pawns, walls, turn, move, setCurrPawnPosAdj);
 
   function move(row: number, col: number) {
     getPossibleMoves(
@@ -172,6 +171,13 @@ const Board = ({
     matrix[lastMove.y][lastMove.x].highlightCell = "bg-orange-300";
     let p = pawns[turn == 0 ? 1 : 0];
     matrix[p.pos.y][p.pos.x].highlightCell = "bg-orange-300";
+  }
+
+  if (currentDraggingCell) {
+    let m = matrix[currentDraggingCell.y][currentDraggingCell.x];
+    if (m.pawn?.name == "ghostPawn") {
+      m.highlightCell = "bg-blue-300";
+    }
   }
 
   if (hoveredWall) {

@@ -22,11 +22,11 @@ const CellComponent = ({
       data-col={col}
       id="cell"
     >
-      {state.pawn ? <PawnComponent pawn={state.pawn} /> : ""}
-      {state.highlightCell ? (
-        <div className="absolute w-full h-full bg-yellow-500 opacity-30" />
-      ) : (
-        ""
+      {state.pawn && <PawnComponent pawn={state.pawn} />}
+      {state.highlightCell && (
+        <div
+          className={`absolute w-full h-full opacity-40 ${state.highlightCell}`}
+        />
       )}
       {col == (reversed ? 8 : 0) && (
         <h5
