@@ -1,15 +1,15 @@
-import { Pawn } from "../Board";
+import { CellState } from "../Board";
 import PawnComponent from "./PawnComponent";
 
 const columns = "abcdefghi";
 const CellComponent = ({
   row,
   col,
-  pawn,
+  state,
 }: {
   row: number;
   col: number;
-  pawn?: Pawn;
+  state: CellState;
 }) => {
   let cellColor = (row + col) % 2 ? "bg-zinc-600" : "bg-zinc-300";
   return (
@@ -20,7 +20,12 @@ const CellComponent = ({
       data-col={col}
       id="cell"
     >
-      {pawn ? <PawnComponent pawn={pawn} /> : ""}
+      {state.pawn ? <PawnComponent pawn={state.pawn} /> : ""}
+      {state.highlightCell ? (
+        <div className="absolute w-full h-full bg-yellow-500 opacity-30" />
+      ) : (
+        ""
+      )}
       {col == 0 && (
         <h5
           className={`select-none text-xs absolute top-0 left-0 mx-0.5 font-bold ${

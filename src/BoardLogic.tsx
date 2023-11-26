@@ -26,6 +26,8 @@ export const BoardLogic = () => {
     setWalls,
   });
 
+  const [lastMove, setLastMove] = useState<PawnPos | null>(null);
+
   const pawns: Pawn[] = [
     { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
     { pos: blackPawnPos, name: "blackPawn", end: 0, color: "bg-black" },
@@ -33,10 +35,13 @@ export const BoardLogic = () => {
 
   const moveCallback = (pos: PawnPos) => {
     if (activeMove != history.length) return;
+
     if (turn == 0) {
+      setLastMove(pawns[0].pos);
       setWhitePawnPos(pos);
       setTurn(1);
     } else {
+      setLastMove(pawns[1].pos);
       setBlackPawnPos(pos);
       setTurn(0);
     }
@@ -63,10 +68,12 @@ export const BoardLogic = () => {
     setInteractive(true);
     setHistory([]);
     setActiveMove(0);
+    setLastMove(null);
   };
 
   useEffect(() => {
     setInteractive(activeMove == history.length);
+    if (activeMove != history.length) setLastMove(null);
   }, [activeMove]);
 
   return (
@@ -81,6 +88,7 @@ export const BoardLogic = () => {
           walls={walls}
           pawns={pawns}
           interactive={interactive}
+          lastMove={lastMove}
         />
         {winner != null && (
           <button

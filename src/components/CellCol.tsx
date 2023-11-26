@@ -9,7 +9,7 @@ const CellCol = ({ col, f }: { col: number; f: CellState[] }) => {
       {f.map((cell, row) => {
         return (
           <Fragment key={`${row}${col}`}>
-            <CellComponent row={row} col={col} pawn={cell.pawn} />
+            <CellComponent row={row} col={col} state={cell} />
             {row < 8 && (
               <WallComponent
                 state={cell}

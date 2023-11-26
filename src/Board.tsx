@@ -1,4 +1,4 @@
-import { Fragment, MouseEvent, useState } from "react";
+import { Fragment, MouseEvent, useRef, useState } from "react";
 import {
   compare,
   getPossibleMoves,
@@ -18,6 +18,7 @@ export interface BoardComponentProps {
   walls: Wall[][];
   pawns: Pawn[];
   interactive: boolean;
+  lastMove: PawnPos | null;
 }
 
 export interface Pawn {
@@ -42,6 +43,7 @@ export interface CellState {
   hoveredWall: string;
   row: number;
   col: number;
+  highlightCell: string;
 }
 
 const WALLS_IDS = ["horizontal-wall", "vertical-wall", "intersection"];
@@ -53,6 +55,7 @@ const Board = ({
   moveCallback,
   wallCallback,
   interactive,
+  lastMove,
 }: BoardComponentProps) => {
   const [hoveredWall, setHoveredWall] = useState<{
     pos: PawnPos;
@@ -160,6 +163,12 @@ const Board = ({
       name: "ghostPawn",
       color: "bg-neutral-400",
     };
+  }
+
+  if (lastMove) {
+    matrix[lastMove.y][lastMove.x].highlightCell = "bg-orange-300";
+    let p = pawns[turn == 0 ? 1 : 0];
+    matrix[p.pos.y][p.pos.x].highlightCell = "bg-orange-300";
   }
 
   if (hoveredWall) {
