@@ -3,13 +3,26 @@ import WallComponent from "./WallComponent";
 import CellComponent from "./CellComponent";
 import { CellState } from "../Board";
 
-const CellCol = ({ col, f }: { col: number; f: CellState[] }) => {
+const CellCol = ({
+  col,
+  f,
+  reversed,
+}: {
+  col: number;
+  f: CellState[];
+  reversed: boolean;
+}) => {
   return (
-    <div className="flex flex-col-reverse">
+    <div className={`flex ${reversed ? "flex-col" : "flex-col-reverse"}`}>
       {f.map((cell, row) => {
         return (
           <Fragment key={`${row}${col}`}>
-            <CellComponent row={row} col={col} state={cell} />
+            <CellComponent
+              row={row}
+              col={col}
+              state={cell}
+              reversed={reversed}
+            />
             {row < 8 && (
               <WallComponent
                 state={cell}

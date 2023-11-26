@@ -1,6 +1,5 @@
-import { Fragment, MouseEvent, useRef, useState } from "react";
+import { Fragment, MouseEvent, useState } from "react";
 import {
-  compare,
   getPossibleMoves,
   pickHorizontalWall,
   pickVerticalWall,
@@ -19,6 +18,7 @@ export interface BoardComponentProps {
   pawns: Pawn[];
   interactive: boolean;
   lastMove: PawnPos | null;
+  reversed: boolean;
 }
 
 export interface Pawn {
@@ -56,6 +56,7 @@ const Board = ({
   wallCallback,
   interactive,
   lastMove,
+  reversed,
 }: BoardComponentProps) => {
   const [hoveredWall, setHoveredWall] = useState<{
     pos: PawnPos;
@@ -108,7 +109,9 @@ const Board = ({
 
     if (
       target.id == pawns[turn].name ||
-      (target.id == "cell" && compare(pawns[turn].pos, row, col))
+      (target.id == "cell" &&
+        pawns[turn].pos.x == row &&
+        pawns[turn].pos.y == col)
     ) {
       if (currPawnPosAdj.length > 0) return setCurrPawnPosAdj([]);
 
@@ -189,13 +192,13 @@ const Board = ({
       onDragEnter={handleDragEnter}
       onDragEnd={handleDragEnd}
       onDragStart={handleDragStart}
-      className="flex"
+      className={`flex ${reversed ? "flex-row-reverse" : ""}`}
     >
       {matrix.map((f, col) => {
         return (
           <Fragment key={col}>
-            <CellCol col={col} f={f} />
-            <WallCol col={col} f={f} />
+            <CellCol reversed={reversed} col={col} f={f} />
+            <WallCol reversed={reversed} col={col} f={f} />
           </Fragment>
         );
       })}

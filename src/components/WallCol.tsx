@@ -3,11 +3,20 @@ import WallComponent from "./WallComponent";
 import { CellState } from "../Board";
 import Intersection from "./Intersection";
 
-const WallCol = ({ f, col }: { f: CellState[]; col: number }) => {
+const WallCol = ({
+  f,
+  col,
+  reversed,
+}: {
+  f: CellState[];
+  col: number;
+  reversed: boolean;
+}) => {
   if (col >= 8) return;
 
+  console.log(reversed);
   return (
-    <div className="flex flex-col-reverse">
+    <div className={`flex ${reversed ? "flex-col" : "flex-col-reverse"}`}>
       {f.map((cell, row) => {
         return (
           <Fragment key={row}>

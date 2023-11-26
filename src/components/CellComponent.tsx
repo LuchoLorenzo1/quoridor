@@ -6,10 +6,12 @@ const CellComponent = ({
   row,
   col,
   state,
+  reversed,
 }: {
   row: number;
   col: number;
   state: CellState;
+  reversed: boolean;
 }) => {
   let cellColor = (row + col) % 2 ? "bg-zinc-600" : "bg-zinc-300";
   return (
@@ -26,7 +28,7 @@ const CellComponent = ({
       ) : (
         ""
       )}
-      {col == 0 && (
+      {col == (reversed ? 8 : 0) && (
         <h5
           className={`select-none text-xs absolute top-0 left-0 mx-0.5 font-bold ${
             !((row + col) % 2) ? "text-zinc-600" : "text-zinc-300"
@@ -35,7 +37,7 @@ const CellComponent = ({
           {row + 1}
         </h5>
       )}
-      {row == 0 && (
+      {row == (reversed ? 8 : 0) && (
         <h5
           className={`select-none text-xs absolute bottom-0 right-0 mx-0.5 font-bold ${
             !((row + col) % 2) ? "text-zinc-600" : "text-zinc-300"

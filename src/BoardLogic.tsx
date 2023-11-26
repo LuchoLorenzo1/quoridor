@@ -27,6 +27,7 @@ export const BoardLogic = () => {
   });
 
   const [lastMove, setLastMove] = useState<PawnPos | null>(null);
+  const [reversed, setReversed] = useState<boolean>(false);
 
   const pawns: Pawn[] = [
     { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
@@ -56,6 +57,7 @@ export const BoardLogic = () => {
     if (activeMove != history.length) return;
     setWalls(copy);
     setTurn(turn == 0 ? 1 : 0);
+    setLastMove(null);
     moveCallbackHistory(pos, w);
   };
 
@@ -89,6 +91,7 @@ export const BoardLogic = () => {
           pawns={pawns}
           interactive={interactive}
           lastMove={lastMove}
+          reversed={reversed}
         />
         {winner != null && (
           <button
@@ -99,7 +102,10 @@ export const BoardLogic = () => {
           </button>
         )}
       </div>
-      <GameMenu history={history} activeMove={activeMove} control={control} />
+      <div className="flex-row h-[50%] justify-center items-center">
+        <GameMenu history={history} activeMove={activeMove} control={control} />
+        <button onClick={() => setReversed((r) => !r)}>FlipBoard</button>
+      </div>
     </div>
   );
 };
@@ -137,8 +143,8 @@ const GameMenu = ({
   }, [activeMove]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-[50%]">
-      <div className="w-52 bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white">
+    <div className="flex flex-col items-center justify-center h-full">
+      <div className="w-52 bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white mb-2">
         {pairs.map((m, i) => {
           return (
             <div ref={refs[i]} className="gap-2 flex items-center mb-1" key={i}>

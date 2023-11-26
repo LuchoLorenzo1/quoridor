@@ -202,27 +202,6 @@ export const getPossibleMoves = (
   return adjss;
 };
 
-export const compare = (p: PawnPos, row: number, col: number) => {
-  return p.x == row && p.y == col;
-};
-
-export const isWallHovered = (
-  hoveredWall: { pos: PawnPos; wall: Wall } | null,
-  row: number,
-  col: number,
-  horizontal?: boolean,
-): boolean => {
-  if (!hoveredWall) return false;
-  if (horizontal && !hoveredWall.wall.col) return false;
-  if (!horizontal && !hoveredWall.wall.row) return false;
-  if (hoveredWall.pos.x == row && hoveredWall.pos.y == col) return true;
-  if (horizontal && hoveredWall.pos.x == row && hoveredWall.pos.y == col - 1)
-    return true;
-  return (
-    !horizontal && hoveredWall.pos.x == row - 1 && hoveredWall.pos.y == col
-  );
-};
-
 export const matrix = (m: number, n: number): Wall[][] => {
   let _matrix: Wall[][] = [];
   for (let i = 0; i < m; i++) {
