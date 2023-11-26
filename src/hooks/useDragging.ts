@@ -8,6 +8,7 @@ const useDragging = (
   turn: number,
   move: (row: number, col: number) => void,
   setCurrPawnPosAdj: Dispatch<SetStateAction<PawnPos[]>>,
+  setSelectedCells: Dispatch<SetStateAction<PawnPos[]>>,
 ) => {
   let [currentDraggingCell, setCurrentDraggingCell] = useState<PawnPos | null>(
     null,
@@ -41,6 +42,9 @@ const useDragging = (
     let _col = target.getAttribute("data-col");
     if (target.id != pawns[turn].name || !_row || !_col)
       return e.preventDefault();
+
+    setSelectedCells([]);
+
     let row = +_row;
     let col = +_col;
     e.dataTransfer.setDragImage(document.createElement("span"), 0, 0);

@@ -14,7 +14,6 @@ const WallCol = ({
 }) => {
   if (col >= 8) return;
 
-  console.log(reversed);
   return (
     <div className={`flex ${reversed ? "flex-col" : "flex-col-reverse"}`}>
       {f.map((cell, row) => {

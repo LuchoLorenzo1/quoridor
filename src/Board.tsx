@@ -63,12 +63,21 @@ const Board = ({
     wall: string;
   } | null>(null);
   const [currPawnPosAdj, setCurrPawnPosAdj] = useState<PawnPos[]>([]);
+  const [selectedCells, setSelectedCells] = useState<PawnPos[]>([]);
+
   const {
     currentDraggingCell,
     handleDragStart,
     handleDragEnd,
     handleDragEnter,
-  } = useDragging(pawns, walls, turn, move, setCurrPawnPosAdj);
+  } = useDragging(
+    pawns,
+    walls,
+    turn,
+    move,
+    setCurrPawnPosAdj,
+    setSelectedCells,
+  );
 
   function move(row: number, col: number) {
     getPossibleMoves(
@@ -91,6 +100,8 @@ const Board = ({
     if (!_row || !_col) return;
     let row = +_row;
     let col = +_col;
+
+    setSelectedCells([]);
 
     if (WALLS_IDS.includes(target.id)) {
       if (currPawnPosAdj.length != 0) return setCurrPawnPosAdj([]);
@@ -154,6 +165,25 @@ const Board = ({
     }
   };
 
+  const handleRightClick = (e: MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    const target = e.target as HTMLDivElement;
+    let _row = target.getAttribute("data-row");
+    let _col = target.getAttribute("data-col");
+    if (!_row || !_col) return;
+    let row = +_row;
+    let col = +_col;
+
+    if (target.id == "cell" || target.id.includes("Pawn")) {
+      if (selectedCells.find((e) => e.x == row && e.y == col)) {
+        setSelectedCells((c) => c.filter((e) => e.x != row || e.y != col));
+      } else {
+        setSelectedCells((c) => [...c, { x: row, y: col }]);
+      }
+    }
+  };
+
   let matrix = structuredClone(walls) as CellState[][];
   for (let pawn of pawns) {
     matrix[pawn.pos.y][pawn.pos.x].pawn = pawn;
@@ -180,6 +210,10 @@ const Board = ({
     }
   }
 
+  for (const cell of selectedCells) {
+    matrix[cell.y][cell.x].highlightCell = "bg-red-500 opacity-50";
+  }
+
   if (hoveredWall) {
     if (hoveredWall.wall == "h") {
       matrix[hoveredWall.pos.y][hoveredWall.pos.x].hoveredWall = "h";
@@ -193,6 +227,7 @@ const Board = ({
   return (
     <div
       onClick={(e) => handleClick(e)}
+      onContextMenu={(e) => handleRightClick(e)}
       onMouseOver={(e) => handleHover(e)}
       onMouseOut={() => setHoveredWall(null)}
       onDragEnter={handleDragEnter}

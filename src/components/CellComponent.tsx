@@ -26,6 +26,9 @@ const CellComponent = ({
       {state.highlightCell && (
         <div
           className={`absolute w-full h-full opacity-40 ${state.highlightCell}`}
+          data-row={row}
+          data-col={col}
+          id="cell"
         />
       )}
       {col == (reversed ? 8 : 0) && (
