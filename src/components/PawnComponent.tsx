@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Pawn } from "../Board";
+import { Pawn } from "@/components/Board";
 
 const PawnComponent = ({ pawn }: { pawn: Pawn }) => {
   let color = pawn.color;

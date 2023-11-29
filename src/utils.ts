@@ -1,4 +1,4 @@
-import { Pawn, PawnPos, Wall } from "./Board";
+import { Pawn, PawnPos, Wall } from "@/components/Board";
 
 export const validateWalls = (pawns: Pawn[], walls: Wall[][]): boolean => {
   for (let pawn of pawns) {

@@ -5,10 +5,10 @@ import {
   pickVerticalWall,
   pickWall,
   validateWalls,
-} from "./utils";
-import CellCol from "./components/CellCol";
-import WallCol from "./components/WallCol";
-import useDragging from "./hooks/useDragging";
+} from "@/utils";
+import CellCol from "@/components/CellCol";
+import WallCol from "@/components/WallCol";
+import useDragging from "@/hooks/useDragging";
 
 export interface BoardComponentProps {
   moveCallback: (pos: PawnPos) => void;

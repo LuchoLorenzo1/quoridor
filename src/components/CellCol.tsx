@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import WallComponent from "./WallComponent";
 import CellComponent from "./CellComponent";
-import { CellState } from "../Board";
+import { CellState } from "@/components/Board";
 
 const CellCol = ({
   col,

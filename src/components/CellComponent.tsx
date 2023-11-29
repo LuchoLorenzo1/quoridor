@@ -1,4 +1,4 @@
-import { CellState } from "../Board";
+import { CellState } from "@/components/Board";
 import PawnComponent from "./PawnComponent";
 
 const columns = "abcdefghi";

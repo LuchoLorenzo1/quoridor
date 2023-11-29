@@ -1,5 +1,5 @@
-import { useRef, DragEvent, Dispatch, SetStateAction, useState } from "react";
-import { Pawn, PawnPos, Wall } from "../Board";
+import { DragEvent, Dispatch, SetStateAction, useState } from "react";
+import { Pawn, PawnPos, Wall } from "@/components/Board";
 import { getPossibleMoves } from "../utils";
 
 const useDragging = (

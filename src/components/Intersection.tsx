@@ -1,4 +1,4 @@
-import { CellState } from "../Board";
+import { CellState } from "@/components/Board";
 
 const Intersection = ({
   row,

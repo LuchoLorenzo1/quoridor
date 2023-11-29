@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import WallComponent from "./WallComponent";
-import { CellState } from "../Board";
+import { CellState } from "@/components/Board";
 import Intersection from "./Intersection";
 
 const WallCol = ({
