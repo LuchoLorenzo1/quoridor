@@ -11,8 +11,7 @@ import WallCol from "@/components/WallCol";
 import useDragging from "@/hooks/useDragging";
 
 export interface BoardComponentProps {
-  moveCallback: (pos: PawnPos) => void;
-  wallCallback: (pos: PawnPos, wall: Wall, copy: Wall[][]) => void;
+  moveCallback: (pos: PawnPos, wall?: Wall) => void;
   turn: number;
   walls: Wall[][];
   pawns: Pawn[];
@@ -53,7 +52,6 @@ const Board = ({
   pawns,
   walls,
   moveCallback,
-  wallCallback,
   interactive,
   lastMove,
   reversed,
@@ -77,6 +75,7 @@ const Board = ({
     move,
     setCurrPawnPosAdj,
     setSelectedCells,
+    interactive,
   );
 
   function move(row: number, col: number) {
@@ -108,11 +107,7 @@ const Board = ({
 
       const res = pickWall(target.id, row, col, walls);
       if (res && validateWalls(pawns, res.walls)) {
-        wallCallback(
-          { x: res.row, y: res.col },
-          res.walls[res.col][res.row],
-          res.walls,
-        );
+        moveCallback({ x: res.row, y: res.col }, res.walls[res.col][res.row]);
         setHoveredWall(null);
       }
     }

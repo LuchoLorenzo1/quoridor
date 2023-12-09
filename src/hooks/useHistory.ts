@@ -88,6 +88,7 @@ export const useHistory = ({
   };
 
   const goForward = (i: number) => {
+    if (i == Infinity) i = historyRef.current.length;
     if (activeMoveRef.current == historyRef.current.length) return;
     if (i <= activeMoveRef.current) return;
 

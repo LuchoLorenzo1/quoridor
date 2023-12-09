@@ -9,6 +9,7 @@ const useDragging = (
   move: (row: number, col: number) => void,
   setCurrPawnPosAdj: Dispatch<SetStateAction<PawnPos[]>>,
   setSelectedCells: Dispatch<SetStateAction<PawnPos[]>>,
+  interactive: boolean,
 ) => {
   let [currentDraggingCell, setCurrentDraggingCell] = useState<PawnPos | null>(
     null,
@@ -37,6 +38,8 @@ const useDragging = (
   };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
+    if (!interactive) return e.preventDefault();
+
     const target = e.target as HTMLDivElement;
     let _row = target.getAttribute("data-row");
     let _col = target.getAttribute("data-col");

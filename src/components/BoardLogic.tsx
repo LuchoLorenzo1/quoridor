@@ -1,18 +1,24 @@
-import { createRef, useEffect, useState, RefObject } from "react";
+import { createRef, useEffect, useState, RefObject, useRef } from "react";
 import Board, { Pawn, PawnPos, Wall } from "./Board";
 import { matrix } from "@/utils";
 import { useHistory } from "@/hooks/useHistory";
+import socket from "@/server";
 
 export const WHITE_START = { x: 0, y: 4 };
 export const BLACK_START = { x: 8, y: 4 };
 
 export const BoardLogic = () => {
-  const [turn, setTurn] = useState<number>(0);
+  const [turn, setTurn] = useState<number | null>(null);
+
+  const player = useRef<number | null>(null);
+
   const [interactive, setInteractive] = useState<boolean>(true);
   const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>(WHITE_START);
   const [blackPawnPos, setBlackPawnPos] = useState<PawnPos>(BLACK_START);
   const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
+
   const [winner, setWinner] = useState<number | null>(null);
+
   const {
     history,
     setHistory,
@@ -34,31 +40,66 @@ export const BoardLogic = () => {
     { pos: blackPawnPos, name: "blackPawn", end: 0, color: "bg-black" },
   ];
 
-  const moveCallback = (pos: PawnPos) => {
+  const movePawn = (pos: PawnPos) => {
     if (activeMove != history.length) return;
 
-    if (turn == 0) {
-      setLastMove(pawns[0].pos);
-      setWhitePawnPos(pos);
-      setTurn(1);
-    } else {
-      setLastMove(pawns[1].pos);
-      setBlackPawnPos(pos);
-      setTurn(0);
-    }
-    if (pawns[turn].end == pos.x) {
-      setWinner(turn);
-      setInteractive(false);
-    }
+    setTurn((t) => {
+      if (t == null) return null;
+      if (t == 0) {
+        setWhitePawnPos((p) => {
+          setLastMove(p);
+          return pos;
+        });
+      } else {
+        setBlackPawnPos((p) => {
+          setLastMove(p);
+          return pos;
+        });
+      }
+
+      let nextTurn = t == 0 ? 1 : 0;
+
+      if (pawns[t].end == pos.x) {
+        setWinner(turn);
+        setInteractive(false);
+        return nextTurn;
+      }
+
+      setInteractive(player.current == nextTurn);
+      return nextTurn;
+    });
+
     moveCallbackHistory(pos);
   };
 
-  const wallCallback = (pos: PawnPos, w: Wall, copy: Wall[][]) => {
+  const moveWall = (pos: PawnPos, wall: Wall) => {
     if (activeMove != history.length) return;
-    setWalls(copy);
-    setTurn(turn == 0 ? 1 : 0);
+
+    setWalls((w) => {
+      w[pos.y][pos.x] = wall;
+      if (wall.col == 1) {
+        w[pos.y][pos.x + 1].col = 2;
+      } else {
+        w[pos.y + 1][pos.x].row = 2;
+      }
+      return w;
+    });
+
+    setTurn((t) => {
+      setInteractive(t == player.current);
+      return t == 0 ? 1 : 0;
+    });
     setLastMove(null);
-    moveCallbackHistory(pos, w);
+    moveCallbackHistory(pos, wall);
+  };
+
+  const moveCallback = (pos: PawnPos, wall?: Wall) => {
+    if (wall) {
+      moveWall(pos, wall);
+    } else {
+      movePawn(pos);
+    }
+    socket.emit("move", moveToString(pos, wall));
   };
 
   const restart = () => {
@@ -74,19 +115,47 @@ export const BoardLogic = () => {
   };
 
   useEffect(() => {
-    setInteractive(activeMove == history.length);
+    setInteractive(activeMove == history.length && turn == player.current);
     if (activeMove != history.length) setLastMove(null);
   }, [activeMove]);
+
+  useEffect(() => {
+    socket.emit("start");
+    socket.on("move", (move: string) => {
+      control.goForward(Infinity);
+
+      const { pos, wall } = stringToMove(move);
+
+      if (wall) {
+        moveWall(pos, wall);
+      } else {
+        movePawn(pos);
+      }
+    });
+    socket.on("start", (t: number) => {
+      console.log("== Start", t, "==");
+      player.current = t;
+      setInteractive(t == 0);
+      setReversed(t == 1);
+      setTurn(0);
+    });
+    return () => {
+      socket.off("start");
+      socket.off("move");
+    };
+  }, []);
+
+  if (player.current == null || turn == null) return <h1>Loading....</h1>;
 
   return (
     <div className="flex justify-center items-center gap-5 h-full w-full">
       <div className="flex flex-col justify-center items-center gap-5">
+        <h1>You are playing as: {player.current == 0 ? "White" : "Black"}</h1>
         <h1>Turn: {turn == 0 ? "White" : "Black"}</h1>
         {winner != null && <h1>{winner == 0 ? "White" : "Black"} Wins !</h1>}
         <Board
           turn={turn}
           moveCallback={moveCallback}
-          wallCallback={wallCallback}
           walls={walls}
           pawns={pawns}
           interactive={interactive}
@@ -119,7 +188,6 @@ const GameMenu = ({
   activeMove: number;
   control: ActiveMoveControl;
 }) => {
-  if (!history) return;
   const pairs = pairElements(history);
 
   const refs = pairs.reduce<Record<number, RefObject<HTMLDivElement>>>(
@@ -131,6 +199,8 @@ const GameMenu = ({
   );
 
   useEffect(() => {
+    if (!history) return;
+
     let refIndex = activeMove == 0 ? 0 : Math.floor((activeMove - 1) / 2);
     if (refIndex < 0 || refIndex >= history.length) return;
 
@@ -141,6 +211,8 @@ const GameMenu = ({
         block: "center",
       });
   }, [activeMove]);
+
+  if (!history) return;
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
