@@ -3,6 +3,7 @@ import Board, { Pawn, PawnPos, Wall } from "./Board";
 import { matrix } from "@/utils";
 import { useHistory } from "@/hooks/useHistory";
 import socket from "@/server";
+import GameOverModal from "./GameOverModal";
 
 export const WHITE_START = { x: 0, y: 4 };
 export const BLACK_START = { x: 8, y: 4 };
@@ -60,7 +61,7 @@ export const BoardLogic = () => {
       let nextTurn = t == 0 ? 1 : 0;
 
       if (pawns[t].end == pos.x) {
-        setWinner(turn);
+        setWinner(t);
         setInteractive(false);
         return nextTurn;
       }
@@ -120,7 +121,6 @@ export const BoardLogic = () => {
   }, [activeMove]);
 
   useEffect(() => {
-    socket.emit("start");
     socket.on("move", (move: string) => {
       control.goForward(Infinity);
 
@@ -132,6 +132,7 @@ export const BoardLogic = () => {
         movePawn(pos);
       }
     });
+
     socket.on("start", (t: number) => {
       console.log("== Start", t, "==");
       player.current = t;
@@ -139,6 +140,9 @@ export const BoardLogic = () => {
       setReversed(t == 1);
       setTurn(0);
     });
+
+    socket.emit("start");
+
     return () => {
       socket.off("start");
       socket.off("move");
@@ -149,10 +153,10 @@ export const BoardLogic = () => {
 
   return (
     <div className="flex justify-center items-center gap-5 h-full w-full">
+      {winner != null && <GameOverModal win={winner == player.current} />}
       <div className="flex flex-col justify-center items-center gap-5">
         <h1>You are playing as: {player.current == 0 ? "White" : "Black"}</h1>
         <h1>Turn: {turn == 0 ? "White" : "Black"}</h1>
-        {winner != null && <h1>{winner == 0 ? "White" : "Black"} Wins !</h1>}
         <Board
           turn={turn}
           moveCallback={moveCallback}
@@ -162,14 +166,6 @@ export const BoardLogic = () => {
           lastMove={lastMove}
           reversed={reversed}
         />
-        {winner != null && (
-          <button
-            onClick={() => restart()}
-            className="px-5 py-2 bg-green-500 rounded-md"
-          >
-            Restart
-          </button>
-        )}
       </div>
       <div className="flex-row h-[50%] justify-center items-center">
         <GameMenu history={history} activeMove={activeMove} control={control} />

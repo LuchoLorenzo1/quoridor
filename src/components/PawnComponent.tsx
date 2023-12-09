@@ -12,7 +12,7 @@ const PawnComponent = ({ pawn }: { pawn: Pawn }) => {
       data-col={pawn.pos.y}
       id={pawn.name}
       style={{ viewTransitionName: pawn.name }}
-      className={`z-50 w-9 h-9 rounded-full ${color}`}
+      className={`z-10 w-9 h-9 rounded-full ${color}`}
       draggable
     />
   );
