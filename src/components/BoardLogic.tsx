@@ -77,10 +77,11 @@ export const BoardLogic = () => {
     if (activeMove != history.length) return;
 
     setWalls((w) => {
-      w[pos.y][pos.x] = wall;
       if (wall.col == 1) {
+        w[pos.y][pos.x].col = 1;
         w[pos.y][pos.x + 1].col = 2;
       } else {
+        w[pos.y][pos.x].row = 1;
         w[pos.y + 1][pos.x].row = 2;
       }
       return w;
