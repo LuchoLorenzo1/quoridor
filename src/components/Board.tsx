@@ -10,16 +10,6 @@ import CellCol from "@/components/CellCol";
 import WallCol from "@/components/WallCol";
 import useDragging from "@/hooks/useDragging";
 
-export interface BoardComponentProps {
-  moveCallback: (pos: PawnPos, wall?: Wall) => void;
-  turn: number;
-  walls: Wall[][];
-  pawns: Pawn[];
-  interactive: boolean;
-  lastMove: PawnPos | null;
-  reversed: boolean;
-}
-
 export interface Pawn {
   pos: PawnPos;
   name: string;
@@ -47,14 +37,27 @@ export interface CellState {
 
 const WALLS_IDS = ["horizontal-wall", "vertical-wall", "intersection"];
 
+export const WHITE_START = { x: 0, y: 4 };
+export const BLACK_START = { x: 8, y: 4 };
+
+export interface BoardComponentProps {
+  moveCallback: (pos: PawnPos, wall?: Wall) => void;
+  boardState: {
+    turn: number;
+    walls: Wall[][];
+    pawns: Pawn[];
+    lastMove: PawnPos | null;
+  };
+  boardSettings: {
+    reversed: boolean;
+    interactive: boolean;
+  };
+}
+
 const Board = ({
-  turn,
-  pawns,
-  walls,
+  boardState: { turn, walls, pawns, lastMove },
+  boardSettings: { reversed, interactive },
   moveCallback,
-  interactive,
-  lastMove,
-  reversed,
 }: BoardComponentProps) => {
   const [hoveredWall, setHoveredWall] = useState<{
     pos: PawnPos;

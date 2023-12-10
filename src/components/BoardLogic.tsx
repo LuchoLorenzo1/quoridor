@@ -1,189 +1,71 @@
-import { createRef, useEffect, useState, RefObject, useRef } from "react";
-import Board, { Pawn, PawnPos, Wall } from "./Board";
-import { matrix } from "@/utils";
-import { useHistory } from "@/hooks/useHistory";
+import { createRef, useEffect, RefObject } from "react";
+import Board, { PawnPos, Wall } from "./Board";
 import socket from "@/server";
 import GameOverModal from "./GameOverModal";
+import useGame from "@/hooks/useGame";
 
-export const WHITE_START = { x: 0, y: 4 };
-export const BLACK_START = { x: 8, y: 4 };
-
-export const BoardLogic = () => {
-  const [turn, setTurn] = useState<number | null>(null);
-
-  const player = useRef<number | null>(null);
-
-  const [interactive, setInteractive] = useState<boolean>(true);
-  const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>(WHITE_START);
-  const [blackPawnPos, setBlackPawnPos] = useState<PawnPos>(BLACK_START);
-  const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
-
-  const [winner, setWinner] = useState<number | null>(null);
-
-  const {
-    history,
-    setHistory,
-    moveCallbackHistory,
-    activeMove,
-    setActiveMove,
-    control,
-  } = useHistory({
-    setWhitePawnPos,
-    setBlackPawnPos,
-    setWalls,
-  });
-
-  const [lastMove, setLastMove] = useState<PawnPos | null>(null);
-  const [reversed, setReversed] = useState<boolean>(false);
-
-  const pawns: Pawn[] = [
-    { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
-    { pos: blackPawnPos, name: "blackPawn", end: 0, color: "bg-black" },
-  ];
-
-  const movePawn = (pos: PawnPos) => {
-    if (activeMove != history.length) return;
-
-    setTurn((t) => {
-      if (t == null) return null;
-      if (t == 0) {
-        setWhitePawnPos((p) => {
-          setLastMove(p);
-          return pos;
-        });
-      } else {
-        setBlackPawnPos((p) => {
-          setLastMove(p);
-          return pos;
-        });
-      }
-
-      let nextTurn = t == 0 ? 1 : 0;
-
-      if (pawns[t].end == pos.x) {
-        setWinner(t);
-        setInteractive(false);
-        return nextTurn;
-      }
-
-      setInteractive(player.current == nextTurn);
-      return nextTurn;
-    });
-
-    moveCallbackHistory(pos);
-  };
-
-  const moveWall = (pos: PawnPos, wall: Wall) => {
-    if (activeMove != history.length) return;
-
-    setWalls((w) => {
-      if (wall.col == 1) {
-        w[pos.y][pos.x].col = 1;
-        w[pos.y][pos.x + 1].col = 2;
-      } else {
-        w[pos.y][pos.x].row = 1;
-        w[pos.y + 1][pos.x].row = 2;
-      }
-      return w;
-    });
-
-    setTurn((t) => {
-      setInteractive(t == player.current);
-      return t == 0 ? 1 : 0;
-    });
-    setLastMove(null);
-    moveCallbackHistory(pos, wall);
-  };
+export const BoardLogic = ({ player }: { player: number }) => {
+  const { gameControl, boardState, boardSettings, historyControl } =
+    useGame(player);
 
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
     if (wall) {
-      moveWall(pos, wall);
+      gameControl.moveWall(pos, wall);
     } else {
-      movePawn(pos);
+      gameControl.movePawn(pos);
     }
     socket.emit("move", moveToString(pos, wall));
   };
 
-  const restart = () => {
-    setWhitePawnPos(WHITE_START);
-    setBlackPawnPos(BLACK_START);
-    setTurn(0);
-    setWalls(matrix(9, 9));
-    setWinner(null);
-    setInteractive(true);
-    setHistory([]);
-    setActiveMove(0);
-    setLastMove(null);
-  };
-
-  useEffect(() => {
-    setInteractive(activeMove == history.length && turn == player.current);
-    if (activeMove != history.length) setLastMove(null);
-  }, [activeMove]);
-
   useEffect(() => {
     socket.on("move", (move: string) => {
-      control.goForward(Infinity);
+      historyControl.goForward(Infinity);
 
       const { pos, wall } = stringToMove(move);
 
       if (wall) {
-        moveWall(pos, wall);
+        gameControl.moveWall(pos, wall);
       } else {
-        movePawn(pos);
+        gameControl.movePawn(pos);
       }
     });
 
-    socket.on("start", (t: number) => {
-      console.log("== Start", t, "==");
-      player.current = t;
-      setInteractive(t == 0);
-      setReversed(t == 1);
-      setTurn(0);
-    });
-
-    socket.emit("start");
-
     return () => {
-      socket.off("start");
       socket.off("move");
     };
   }, []);
 
-  if (player.current == null || turn == null) return <h1>Loading....</h1>;
-
   return (
     <div className="flex justify-center items-center gap-5 h-full w-full">
-      {winner != null && <GameOverModal win={winner == player.current} />}
+      {gameControl.winner != null && (
+        <GameOverModal win={gameControl.winner == player} />
+      )}
       <div className="flex flex-col justify-center items-center gap-5">
-        <h1>You are playing as: {player.current == 0 ? "White" : "Black"}</h1>
-        <h1>Turn: {turn == 0 ? "White" : "Black"}</h1>
+        <h1>You are playing as: {player == 0 ? "White" : "Black"}</h1>
+        <h1>Turn: {boardState.turn == 0 ? "White" : "Black"}</h1>
         <Board
-          turn={turn}
+          boardState={boardState}
+          boardSettings={boardSettings}
           moveCallback={moveCallback}
-          walls={walls}
-          pawns={pawns}
-          interactive={interactive}
-          lastMove={lastMove}
-          reversed={reversed}
         />
       </div>
       <div className="flex-row h-[50%] justify-center items-center">
-        <GameMenu history={history} activeMove={activeMove} control={control} />
-        <button onClick={() => setReversed((r) => !r)}>FlipBoard</button>
+        <GameMenu historyControl={historyControl} />
+        <button onClick={gameControl.reverseBoard}>FlipBoard</button>
       </div>
     </div>
   );
 };
 
 const GameMenu = ({
-  history,
-  activeMove,
-  control,
+  historyControl: { history, activeMove, goBack, goForward },
 }: {
-  history: string[];
-  activeMove: number;
-  control: ActiveMoveControl;
+  historyControl: {
+    history: string[];
+    activeMove: number;
+    goBack: (i: number) => void;
+    goForward: (i: number) => void;
+  };
 }) => {
   const pairs = pairElements(history);
 
@@ -222,23 +104,19 @@ const GameMenu = ({
                 i={1 + i * 2}
                 value={m[0]}
                 activeMove={activeMove}
-                control={control}
+                control={{ goForward, goBack }}
               />
               <MoveButton
                 i={2 + i * 2}
                 value={m[1]}
                 activeMove={activeMove}
-                control={control}
+                control={{ goForward, goBack }}
               />
             </div>
           );
         })}
       </div>
-      <ControlToolBar
-        control={control}
-        history={history}
-        activeMove={activeMove}
-      />
+      <ControlToolBar control={{ goForward, goBack }} activeMove={activeMove} />
     </div>
   );
 };
@@ -275,11 +153,9 @@ interface ActiveMoveControl {
 
 const ControlToolBar = ({
   control,
-  history,
   activeMove,
 }: {
   control: ActiveMoveControl;
-  history: string[];
   activeMove: number;
 }) => {
   return (
@@ -303,7 +179,7 @@ const ControlToolBar = ({
         {">"}
       </button>
       <button
-        onClick={() => control.goForward(history.length)}
+        onClick={() => control.goForward(Infinity)}
         className="select-none px-3 py-1 bg-green-500 rounded-md"
       >
         {">>"}
