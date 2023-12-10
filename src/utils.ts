@@ -214,3 +214,27 @@ export const matrix = (m: number, n: number): Wall[][] => {
   }
   return _matrix;
 };
+
+const columns = "abcdefghi";
+export const moveToString = (move: PawnPos, wall?: Wall): string => {
+  return `${columns[move.y]}${move.x + 1}${
+    wall ? (wall.col == 1 ? "v" : "h") : ""
+  }`;
+};
+
+export const stringToMove = (move: string): { pos: PawnPos; wall?: Wall } => {
+  let y = columns.indexOf(move[0]);
+  let x = +move[1] - 1;
+
+  let wall;
+  if (move[2] == "v") {
+    wall = { col: 1, row: 0 };
+  } else if (move[2] == "h") {
+    wall = { col: 0, row: 1 };
+  }
+
+  return {
+    pos: { x, y },
+    wall,
+  };
+};

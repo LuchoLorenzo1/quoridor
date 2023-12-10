@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { PawnPos, Wall } from "@/components/Board";
-import { moveToString, stringToMove } from "@/components/BoardLogic";
 import { BLACK_START, WHITE_START } from "./useGame";
+import { moveToString, stringToMove } from "@/utils";
 
 export const useHistory = ({
   setWhitePawnPos,
