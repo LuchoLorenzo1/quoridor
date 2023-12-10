@@ -8,15 +8,14 @@ export const BLACK_START = { x: 8, y: 4 };
 
 const useGame = (player: number) => {
   const [turn, setTurn] = useState<number>(0);
-  const turnRef = useRef(turn)
-
+  const turnRef = useRef(turn);
 
   const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>(WHITE_START);
   const [blackPawnPos, setBlackPawnPos] = useState<PawnPos>(BLACK_START);
 
   const [whiteWallsLeft, setWhiteWallsLeft] = useState<number>(10);
   const [blackWallsLeft, setBlackWallsLeft] = useState<number>(10);
-  const wallsLeft = useRef({white: whiteWallsLeft, black: blackWallsLeft})
+  const wallsLeft = useRef({ white: whiteWallsLeft, black: blackWallsLeft });
 
   const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
   const [winner, setWinner] = useState<number | null>(null);
@@ -70,7 +69,7 @@ const useGame = (player: number) => {
       }
 
       setInteractive(player == nextTurn);
-	  turnRef.current = nextTurn
+      turnRef.current = nextTurn;
       return nextTurn;
     });
 
@@ -80,7 +79,7 @@ const useGame = (player: number) => {
   const moveWall = (pos: PawnPos, wall: Wall) => {
     if (activeMove != history.length) return;
     if (turnRef.current == 0 && wallsLeft.current.white <= 0) return;
-    if (turnRef.current  == 1 && wallsLeft.current.black <= 0) return;
+    if (turnRef.current == 1 && wallsLeft.current.black <= 0) return;
 
     setWalls((w) => {
       if (wall.col == 1) {
@@ -96,21 +95,21 @@ const useGame = (player: number) => {
     setTurn((t) => {
       setInteractive(t == player);
 
-	  if (t == 0) {
-		  setWhiteWallsLeft(w => {
-			  wallsLeft.current.white = w - 1
-			  return w - 1
-		  })
-	  } else {
-		  setBlackWallsLeft(w => {
-			  wallsLeft.current.black = w - 1
-			  return w - 1
-		  })
-	  }
+      if (t == 0) {
+        setWhiteWallsLeft((w) => {
+          wallsLeft.current.white = w - 1;
+          return w - 1;
+        });
+      } else {
+        setBlackWallsLeft((w) => {
+          wallsLeft.current.black = w - 1;
+          return w - 1;
+        });
+      }
 
-	  let nextTurn = t == 0 ? 1 : 0
+      let nextTurn = t == 0 ? 1 : 0;
 
-	  turnRef.current = nextTurn
+      turnRef.current = nextTurn;
       return nextTurn;
     });
 
@@ -159,6 +158,8 @@ const useGame = (player: number) => {
     reverseBoard,
     restart,
     winner,
+    whiteWallsLeft,
+    blackWallsLeft,
   };
 
   let historyControl = {
