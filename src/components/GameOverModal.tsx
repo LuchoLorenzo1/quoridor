@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 
-const GameOverModal = ({ win }: { win: boolean }) => {
+const GameOverModal = ({ win, text }: { win: boolean; text?: string }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -50,6 +50,7 @@ const GameOverModal = ({ win }: { win: boolean }) => {
             {" "}
             {win ? "You won!" : "You lost!"}
           </Dialog.Title>
+          {text && <h2>{text}</h2>}
           <button
             onClick={searchGame}
             disabled={loading}

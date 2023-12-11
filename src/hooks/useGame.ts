@@ -1,10 +1,15 @@
 import { Pawn, PawnPos, Wall } from "@/components/Board";
 import { matrix } from "@/utils";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useHistory } from "./useHistory";
 
 export const WHITE_START = { x: 0, y: 4 };
 export const BLACK_START = { x: 8, y: 4 };
+
+type FinishedGameState = {
+  winner: number;
+  reason?: string;
+};
 
 export type Game = {
   gameControl: {
@@ -12,7 +17,8 @@ export type Game = {
     movePawn: (pos: PawnPos) => void;
     reverseBoard: () => void;
     restart: () => void;
-    winner: number | null;
+    setWinner: Dispatch<SetStateAction<FinishedGameState | null>>;
+    winner: FinishedGameState | null;
     whiteWallsLeft: number;
     blackWallsLeft: number;
   };
@@ -46,7 +52,7 @@ const useGame = (player: number | null): Game => {
   const wallsLeft = useRef({ white: whiteWallsLeft, black: blackWallsLeft });
 
   const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
-  const [winner, setWinner] = useState<number | null>(null);
+  const [winner, setWinner] = useState<FinishedGameState | null>(null);
 
   const {
     history,
@@ -65,9 +71,7 @@ const useGame = (player: number | null): Game => {
   const [lastMove, setLastMove] = useState<PawnPos | null>(null);
 
   const [interactive, setInteractive] = useState<boolean>(true);
-  const [reversed, setReversed] = useState<boolean>(
-    player != null && player != 0,
-  );
+  const [reversed, setReversed] = useState<boolean>(false);
 
   const pawns: Pawn[] = [
     { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
@@ -93,7 +97,7 @@ const useGame = (player: number | null): Game => {
       let nextTurn = t == 0 ? 1 : 0;
 
       if (pawns[t].end == pos.x) {
-        setWinner(t);
+        setWinner({ winner: t });
         setInteractive(false);
         return nextTurn;
       }
@@ -193,6 +197,7 @@ const useGame = (player: number | null): Game => {
     movePawn,
     reverseBoard,
     restart,
+    setWinner,
     winner,
     whiteWallsLeft,
     blackWallsLeft,
