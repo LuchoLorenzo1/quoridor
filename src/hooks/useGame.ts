@@ -6,7 +6,35 @@ import { useHistory } from "./useHistory";
 export const WHITE_START = { x: 0, y: 4 };
 export const BLACK_START = { x: 8, y: 4 };
 
-const useGame = (player: number) => {
+export type Game = {
+  gameControl: {
+    moveWall: (pos: PawnPos, wall: Wall) => void;
+    movePawn: (pos: PawnPos) => void;
+    reverseBoard: () => void;
+    restart: () => void;
+    winner: number | null;
+    whiteWallsLeft: number;
+    blackWallsLeft: number;
+  };
+  boardState: {
+    turn: number;
+    walls: Wall[][];
+    pawns: Pawn[];
+    lastMove: PawnPos | null;
+  };
+  boardSettings: {
+    reversed: boolean;
+    interactive: boolean;
+  };
+  historyControl: {
+    history: string[];
+    activeMove: number;
+    goBack: (i: number) => void;
+    goForward: (i: number) => void;
+  };
+};
+
+const useGame = (player: number | null): Game => {
   const [turn, setTurn] = useState<number>(0);
   const turnRef = useRef(turn);
 
@@ -37,7 +65,9 @@ const useGame = (player: number) => {
   const [lastMove, setLastMove] = useState<PawnPos | null>(null);
 
   const [interactive, setInteractive] = useState<boolean>(true);
-  const [reversed, setReversed] = useState<boolean>(player != 0);
+  const [reversed, setReversed] = useState<boolean>(
+    player != null && player != 0,
+  );
 
   const pawns: Pawn[] = [
     { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
@@ -68,7 +98,7 @@ const useGame = (player: number) => {
         return nextTurn;
       }
 
-      setInteractive(player == nextTurn);
+      setInteractive(player == null || player == nextTurn);
       turnRef.current = nextTurn;
       return nextTurn;
     });
@@ -93,7 +123,7 @@ const useGame = (player: number) => {
     });
 
     setTurn((t) => {
-      setInteractive(t == player);
+      setInteractive(player == null || t == player);
 
       if (t == 0) {
         setWhiteWallsLeft((w) => {
@@ -122,7 +152,11 @@ const useGame = (player: number) => {
     setBlackPawnPos(BLACK_START);
     setWhiteWallsLeft(10);
     setBlackWallsLeft(10);
+    wallsLeft.current = { white: 0, black: 0 };
+
     setTurn(0);
+    turnRef.current = 0;
+
     setWalls(matrix(9, 9));
     setWinner(null);
     setInteractive(true);
@@ -132,13 +166,15 @@ const useGame = (player: number) => {
   };
 
   useEffect(() => {
-    setInteractive(activeMove == history.length && turn == player);
+    setInteractive(
+      !winner &&
+        activeMove == history.length &&
+        (turn == player || player == null),
+    );
     if (activeMove != history.length) setLastMove(null);
   }, [activeMove]);
 
-  const reverseBoard = () => {
-    setReversed((r) => !r);
-  };
+  const reverseBoard = () => setReversed((r) => !r);
 
   let boardSettings = {
     reversed,

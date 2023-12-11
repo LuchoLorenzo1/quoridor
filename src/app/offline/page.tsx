@@ -1,33 +1,48 @@
 "use client";
+import { PawnPos, Wall } from "@/components/Board";
+import { BoardLogic } from "@/components/BoardLogic";
+import useGame from "@/hooks/useGame";
 
-import socket from "@/server";
-import Spinner from "./Spinner";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
+import { useState } from "react";
 
-const GameOverModal = ({ win }: { win: boolean }) => {
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+export default function offline() {
+  const game = useGame(null);
 
-  const router = useRouter();
+  const moveCallback = (pos: PawnPos, wall?: Wall) => {
+    if (wall) {
+      game.gameControl.moveWall(pos, wall);
+    } else {
+      game.gameControl.movePawn(pos);
+    }
+  };
 
-  useEffect(() => {
-    socket.on("found-game", (gameId: number) => {
-      router.push(`/game/${gameId}`);
-    });
+  return (
+    <>
+      {game.gameControl.winner != null && (
+        <GameOverModalOffline
+          winner={game.gameControl.winner}
+          restart={game.gameControl.restart}
+        />
+      )}
+      <BoardLogic player={null} game={game} moveCallback={moveCallback} />
+    </>
+  );
+}
 
-    setOpen(true);
+const GameOverModalOffline = ({
+  winner,
+  restart,
+}: {
+  winner: number;
+  restart: () => void;
+}) => {
+  const [open, setOpen] = useState(true);
 
-    return () => {
-      socket.off("found-game");
-    };
-  }, []);
-
-  const searchGame = () => {
-    setLoading(true);
-    socket.emit("search-game");
+  const _restart = () => {
+    setOpen(false);
+    restart();
   };
 
   return (
@@ -48,19 +63,16 @@ const GameOverModal = ({ win }: { win: boolean }) => {
           </Dialog.Close>
           <Dialog.Title className="text-2xl font-bold">
             {" "}
-            {win ? "You won!" : "You lost!"}
+            {winner == 0 ? "White wins!" : "Black wins!"}
           </Dialog.Title>
           <button
-            onClick={searchGame}
-            disabled={loading}
+            onClick={_restart}
             className="px-5 py-2 bg-green-500 rounded-md flex items-center"
           >
-            {loading ? <Spinner className="border-white" /> : "Play Again"}
+            Restart
           </button>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
   );
 };
-
-export default GameOverModal;
