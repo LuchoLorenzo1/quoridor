@@ -7,7 +7,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
-export default function offline() {
+export default function Offline() {
   const game = useGame(null);
 
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
@@ -22,7 +22,7 @@ export default function offline() {
     <>
       {game.gameControl.winner != null && (
         <GameOverModalOffline
-          winner={game.gameControl.winner}
+          winner={game.gameControl.winner.winner}
           restart={game.gameControl.restart}
         />
       )}

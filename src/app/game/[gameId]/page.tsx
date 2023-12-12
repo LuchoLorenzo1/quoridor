@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 
 export default function Game() {
   const [player, setPlayer] = useState<number | null>(null);
-  const game = useGame(player);
+  const game = useGame(player, false);
 
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
     if (wall) {
@@ -41,8 +41,14 @@ export default function Game() {
       }
     });
 
-    socket.on("win", (winner: number) => {
-      game.gameControl.setWinner({ winner, reason: "by resignation" });
+    socket.on("win", (winner: number, reason?: string) => {
+      game.gameControl.setWinner({ winner, reason });
+    });
+
+    socket.on("game", (history: string[], player: number) => {
+      setPlayer(player);
+      game.historyControl.setHistory(history);
+      game.historyControl.goForward(Infinity);
     });
 
     return () => {

@@ -36,11 +36,12 @@ export type Game = {
     history: string[];
     activeMove: number;
     goBack: (i: number) => void;
+    setHistory: (history: string[]) => void;
     goForward: (i: number) => void;
   };
 };
 
-const useGame = (player: number | null): Game => {
+const useGame = (player: number | null, defineWinner: boolean = true): Game => {
   const [turn, setTurn] = useState<number>(0);
   const turnRef = useRef(turn);
 
@@ -97,9 +98,10 @@ const useGame = (player: number | null): Game => {
       let nextTurn = t == 0 ? 1 : 0;
 
       if (pawns[t].end == pos.x) {
-        setWinner({ winner: t });
-        setInteractive(false);
-        return nextTurn;
+        if (defineWinner) {
+          setWinner({ winner: t });
+          setInteractive(false);
+        }
       }
 
       setInteractive(player == null || player == nextTurn);
@@ -206,6 +208,7 @@ const useGame = (player: number | null): Game => {
   let historyControl = {
     history,
     activeMove,
+    setHistory,
     goBack,
     goForward,
   };
