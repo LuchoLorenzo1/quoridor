@@ -245,4 +245,5 @@ const Board = ({
   );
 };
 
+("bg-black");
 export default Board;

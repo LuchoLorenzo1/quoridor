@@ -5,9 +5,12 @@ import GameOverModal from "@/components/GameOverModal";
 import useGame from "@/hooks/useGame";
 import socket from "@/server";
 import { moveToString, stringToMove } from "@/utils";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 export default function Game() {
+  const { data } = useSession({ required: true });
+
   const [player, setPlayer] = useState<number | null>(null);
   const game = useGame(player, false);
 
