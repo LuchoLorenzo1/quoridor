@@ -14,7 +14,7 @@ const GameOverModal = ({ win, text }: { win: boolean; text?: string }) => {
   const router = useRouter();
 
   useEffect(() => {
-    socket.on("found-game", (gameId: number) => {
+    socket.on("foundGame", (gameId: number) => {
       router.push(`/game/${gameId}`);
     });
 
@@ -27,7 +27,7 @@ const GameOverModal = ({ win, text }: { win: boolean; text?: string }) => {
 
   const searchGame = () => {
     setLoading(true);
-    socket.emit("search-game");
+    socket.emit("searchGame");
   };
 
   return (
