@@ -13,6 +13,7 @@ export default function PostgresAdapter(): Adapter {
     const createUser = async (
       user: Omit<AdapterUser, "id">,
     ): Promise<AdapterUser> => {
+      console.log("create user", user);
       if (!user.name || !user.email || !user.image)
         throw Error(`No esta pidiendo todo ${user}`);
 
@@ -31,6 +32,7 @@ export default function PostgresAdapter(): Adapter {
     };
 
     const getUser = async (id: string) => {
+      console.log("get user by id", id);
       const rows = await sql`
           SELECT *
           FROM users
@@ -45,6 +47,7 @@ export default function PostgresAdapter(): Adapter {
     };
 
     const getUserByEmail = async (email: string) => {
+      console.log("get user by email");
       const rows = await sql`SELECT * FROM users WHERE email = ${email}`;
       return rows[0]
         ? {
@@ -63,6 +66,7 @@ export default function PostgresAdapter(): Adapter {
       provider: string;
       providerAccountId: string;
     }): Promise<AdapterUser | null> => {
+      console.log("get user by account", provider, providerAccountId);
       const rows = await sql`
       SELECT u.*
       FROM users u join accounts a on u.id = a.user_id
@@ -75,12 +79,15 @@ export default function PostgresAdapter(): Adapter {
             id: rows[0].id,
           }
         : null;
+      console.log("get user by account result", user);
+
       return user;
     };
 
     const updateUser = async (
       user: Partial<AdapterUser> & Pick<AdapterUser, "id">,
     ): Promise<AdapterUser> => {
+      console.log("update user");
       if (!user.name || !user.email || !user.image) throw Error();
 
       const rows = await sql`
@@ -99,6 +106,7 @@ export default function PostgresAdapter(): Adapter {
     };
 
     const deleteUser = async (userId: string) => {
+      console.log("delete user");
       await sql`DELETE FROM users WHERE id = ${userId}`;
       return;
     };
@@ -112,6 +120,8 @@ export default function PostgresAdapter(): Adapter {
       userId: string;
       expires: Date;
     }): Promise<AdapterSession> => {
+      console.log("create session", userId);
+
       const expiresString = expires.toDateString();
       await sql`
         INSERT INTO auth_sessions (user_id, expires, session_token)
@@ -125,9 +135,17 @@ export default function PostgresAdapter(): Adapter {
       return createdSession;
     };
 
+    const updateSession = async (
+      session: Partial<AdapterSession> & Pick<AdapterSession, "sessionToken">,
+    ): Promise<AdapterSession | null | undefined> => {
+      console.log("SESSION", session);
+      return null;
+    };
+
     const getSessionAndUser = async (
       sessionToken: string,
     ): Promise<{ session: AdapterSession; user: AdapterUser } | null> => {
+      console.log("get session and user");
       const session = await sql`
 			SELECT *
 			FROM auth_sessions
@@ -160,6 +178,7 @@ export default function PostgresAdapter(): Adapter {
     };
 
     const deleteSession = async (sessionToken: string) => {
+      console.log("delete session");
       await sql`
           DELETE FROM auth_sessions
           WHERE session_token = ${sessionToken};
@@ -243,6 +262,7 @@ export default function PostgresAdapter(): Adapter {
       deleteUser,
       getSessionAndUser,
       createSession,
+      updateSession,
       deleteSession,
       createVerificationToken,
       useVerificationToken,

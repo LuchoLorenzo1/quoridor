@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 export default function Game() {
-  const { data } = useSession({ required: true });
+  const session = useSession({ required: true });
 
   const [player, setPlayer] = useState<number | null>(null);
   const game = useGame(player, false);
@@ -24,13 +24,22 @@ export default function Game() {
   };
 
   useEffect(() => {
-    socket.on("start", (t: number) => {
-      console.log("== Start", t, "==");
-      setPlayer(t);
-      if (t == 1) game.gameControl.reverseBoard();
+    socket.on("start", (history: string[], t: number, p: number) => {
+      setPlayer(p);
+      game.gameControl.setTurn(t);
+      game.historyControl.setHistory(history);
+      game.historyControl.goForward(Infinity);
+      if (p == 1) game.gameControl.reverseBoard();
     });
 
-    socket.emit("start");
+    if (socket.connected) {
+      socket.emit("start");
+    } else {
+      socket.connect();
+      socket.once("connect", () => {
+        socket.emit("start");
+      });
+    }
 
     socket.on("move", (move: string) => {
       game.historyControl.goForward(Infinity);
@@ -46,12 +55,6 @@ export default function Game() {
 
     socket.on("win", (winner: number, reason?: string) => {
       game.gameControl.setWinner({ winner, reason });
-    });
-
-    socket.on("game", (history: string[], player: number) => {
-      setPlayer(player);
-      game.historyControl.setHistory(history);
-      game.historyControl.goForward(Infinity);
     });
 
     return () => {

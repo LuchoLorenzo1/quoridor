@@ -18,6 +18,7 @@ export type Game = {
     reverseBoard: () => void;
     restart: () => void;
     setWinner: Dispatch<SetStateAction<FinishedGameState | null>>;
+    setTurn: (t: number) => void;
     winner: FinishedGameState | null;
     whiteWallsLeft: number;
     blackWallsLeft: number;
@@ -42,8 +43,12 @@ export type Game = {
 };
 
 const useGame = (player: number | null, defineWinner: boolean = true): Game => {
-  const [turn, setTurn] = useState<number>(0);
+  const [turn, _setTurn] = useState<number>(0);
   const turnRef = useRef(turn);
+  const setTurn = (t: number) => {
+    turnRef.current = t;
+    _setTurn(t);
+  };
 
   const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>(WHITE_START);
   const [blackPawnPos, setBlackPawnPos] = useState<PawnPos>(BLACK_START);
@@ -82,34 +87,30 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
   const movePawn = (pos: PawnPos) => {
     if (activeMove != history.length) return;
 
-    setTurn((t) => {
-      if (t == 0) {
-        setWhitePawnPos((p) => {
-          setLastMove(p);
-          return pos;
-        });
-      } else {
-        setBlackPawnPos((p) => {
-          setLastMove(p);
-          return pos;
-        });
+    if (turnRef.current == 0) {
+      setWhitePawnPos((p) => {
+        setLastMove(p);
+        return pos;
+      });
+    } else {
+      setBlackPawnPos((p) => {
+        setLastMove(p);
+        return pos;
+      });
+    }
+
+    if (pawns[turnRef.current].end == pos.x) {
+      if (defineWinner) {
+        setWinner({ winner: turnRef.current });
+        setInteractive(false);
       }
+    }
 
-      let nextTurn = t == 0 ? 1 : 0;
+    let nextTurn = turnRef.current == 0 ? 1 : 0;
 
-      if (pawns[t].end == pos.x) {
-        if (defineWinner) {
-          setWinner({ winner: t });
-          setInteractive(false);
-        }
-      }
-
-      setInteractive(player == null || player == nextTurn);
-      turnRef.current = nextTurn;
-      return nextTurn;
-    });
-
+    setInteractive(player == null || player == nextTurn);
     moveCallbackHistory(pos);
+    setTurn(nextTurn);
   };
 
   const moveWall = (pos: PawnPos, wall: Wall) => {
@@ -128,26 +129,21 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
       return w;
     });
 
-    setTurn((t) => {
-      setInteractive(player == null || t == player);
+    setInteractive(player == null || turnRef.current == player);
 
-      if (t == 0) {
-        setWhiteWallsLeft((w) => {
-          wallsLeft.current.white = w - 1;
-          return w - 1;
-        });
-      } else {
-        setBlackWallsLeft((w) => {
-          wallsLeft.current.black = w - 1;
-          return w - 1;
-        });
-      }
+    if (turnRef.current == 0) {
+      setWhiteWallsLeft((w) => {
+        wallsLeft.current.white = w - 1;
+        return w - 1;
+      });
+    } else {
+      setBlackWallsLeft((w) => {
+        wallsLeft.current.black = w - 1;
+        return w - 1;
+      });
+    }
 
-      let nextTurn = t == 0 ? 1 : 0;
-
-      turnRef.current = nextTurn;
-      return nextTurn;
-    });
+    setTurn(turnRef.current == 0 ? 1 : 0);
 
     setLastMove(null);
     moveCallbackHistory(pos, wall);
@@ -158,7 +154,7 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
     setBlackPawnPos(BLACK_START);
     setWhiteWallsLeft(10);
     setBlackWallsLeft(10);
-    wallsLeft.current = { white: 0, black: 0 };
+    wallsLeft.current = { white: 10, black: 10 };
 
     setTurn(0);
     turnRef.current = 0;
@@ -175,7 +171,7 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
     setInteractive(
       !winner &&
         activeMove == history.length &&
-        (turn == player || player == null),
+        (turnRef.current == player || player == null),
     );
     if (activeMove != history.length) setLastMove(null);
   }, [activeMove]);
@@ -200,6 +196,7 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
     reverseBoard,
     restart,
     setWinner,
+    setTurn,
     winner,
     whiteWallsLeft,
     blackWallsLeft,
