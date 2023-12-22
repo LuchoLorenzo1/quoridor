@@ -9,13 +9,22 @@ export default function Home() {
   const router = useRouter();
   const { status } = useSession({ required: false });
   const [loading, setLoading] = useState(false);
+  const [reconnectGameId, setReconnectGameId] = useState("");
 
   useEffect(() => {
     if (status != "authenticated") return;
-
     socket.connect();
 
-    socket.on("foundGame", (gameId: number) => router.push(`/game/${gameId}`));
+    if (socket.connected) {
+	  socket.emit("reconnectGame")
+    } else {
+      socket.once("connect", () => {
+		socket.emit("reconnectGame")
+      });
+    }
+
+    socket.on("reconnectGame", (gameId: string) => setReconnectGameId(gameId));
+    socket.on("foundGame", (gameId: string) => router.push(`/game/${gameId}`));
     return () => {
       socket.off("foundGame");
     };
@@ -30,6 +39,7 @@ export default function Home() {
   return (
     <div className="w-screen h-screen flex justify-center items-center flex-col gap-5">
       <h1 className="text-4xl">Quoridor</h1>
+	  <div className="flex flex-col items-center gap-5">
       <div className="h-12 flex gap-5">
         {status == "authenticated" && (
           <button
@@ -50,6 +60,15 @@ export default function Home() {
         >
           PLAY OFFLINE
         </button>
+	  </div>
+	  { reconnectGameId &&
+       <button
+          className="font-bold h-full px-4 py-2 bg-orange-500 text-white hover:bg-orange-400 shadow-black"
+          onClick={() => router.push(`game/${reconnectGameId}`)}
+        >
+          Reconnect To Game
+        </button>
+	  }
       </div>
     </div>
   );
