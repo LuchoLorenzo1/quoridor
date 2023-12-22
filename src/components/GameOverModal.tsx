@@ -14,6 +14,8 @@ const GameOverModal = ({ win, text }: { win: boolean; text?: string }) => {
   const router = useRouter();
 
   useEffect(() => {
+    socket.connect();
+
     socket.on("foundGame", (gameId: number) => {
       router.push(`/game/${gameId}`);
     });

@@ -3,14 +3,16 @@ import Board, { PawnPos, Wall } from "@/components/Board";
 import GameMenu from "@/components/GameMenu";
 import GameOverModal from "@/components/GameOverModal";
 import useGame from "@/hooks/useGame";
-import socket from "@/server";
 import { moveToString, stringToMove } from "@/utils";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
+
+const gameSocket = io("http://localhost:8000/game", {
+  withCredentials: true,
+  autoConnect: true,
+});
 
 export default function Game() {
-  const session = useSession({ required: true });
-
   const [player, setPlayer] = useState<number | null>(null);
   const game = useGame(player, false);
 
@@ -20,11 +22,11 @@ export default function Game() {
     } else {
       game.gameControl.movePawn(pos);
     }
-    socket.emit("move", moveToString(pos, wall));
+    gameSocket.emit("move", moveToString(pos, wall));
   };
 
   useEffect(() => {
-    socket.on("start", (history: string[], t: number, p: number) => {
+    gameSocket.on("start", (history: string[], t: number, p: number) => {
       setPlayer(p);
       game.gameControl.setTurn(t);
       game.historyControl.setHistory(history);
@@ -32,16 +34,16 @@ export default function Game() {
       if (p == 1) game.gameControl.reverseBoard();
     });
 
-    if (socket.connected) {
-      socket.emit("start");
+    if (gameSocket.connected) {
+      gameSocket.emit("start");
     } else {
-      socket.connect();
-      socket.once("connect", () => {
-        socket.emit("start");
+      gameSocket.connect();
+      gameSocket.once("connect", () => {
+        gameSocket.emit("start");
       });
     }
 
-    socket.on("move", (move: string) => {
+    gameSocket.on("move", (move: string) => {
       game.historyControl.goForward(Infinity);
 
       const { pos, wall } = stringToMove(move);
@@ -53,20 +55,22 @@ export default function Game() {
       }
     });
 
-    socket.on("win", (winner: number, reason?: string) => {
+    gameSocket.on("win", (winner: number, reason?: string) => {
       game.gameControl.setWinner({ winner, reason });
     });
 
     return () => {
-      socket.off("start");
-      socket.off("move");
+      gameSocket.off("start");
+      gameSocket.off("move");
+      gameSocket.off("win");
+      gameSocket.disconnect();
     };
   }, []);
 
   if (player == null) return <h1>Loading</h1>;
 
   return (
-    <div className="flex justify-center items-center gap-5 h-screen w-full">
+    <div className="flex justify-center items-center gap-5 h-full w-full">
       {game.gameControl.winner != null && (
         <GameOverModal
           win={game.gameControl.winner.winner == player}
@@ -100,7 +104,7 @@ export default function Game() {
         </button>
         <button
           className="w-3/4 rounded px-4 py-2 bg-red-200 hover:bg-red-500"
-          onClick={() => socket.emit("resign")}
+          onClick={() => gameSocket.emit("resign")}
         >
           Resign
         </button>

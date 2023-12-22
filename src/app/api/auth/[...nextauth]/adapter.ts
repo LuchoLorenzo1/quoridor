@@ -138,14 +138,14 @@ export default function PostgresAdapter(): Adapter {
     const updateSession = async (
       session: Partial<AdapterSession> & Pick<AdapterSession, "sessionToken">,
     ): Promise<AdapterSession | null | undefined> => {
-      console.log("SESSION", session);
+      // console.log("SESSION", session);
       return null;
     };
 
     const getSessionAndUser = async (
       sessionToken: string,
     ): Promise<{ session: AdapterSession; user: AdapterUser } | null> => {
-      console.log("get session and user");
+      // console.log("get session and user");
       const session = await sql`
 			SELECT *
 			FROM auth_sessions
