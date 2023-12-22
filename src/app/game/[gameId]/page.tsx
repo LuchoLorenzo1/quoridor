@@ -12,16 +12,12 @@ const gameSocket = io("http://localhost:8000/game", {
   autoConnect: true,
 });
 
-export default function Game() {
+export default function OnlineGame() {
   const [player, setPlayer] = useState<number | null>(null);
   const game = useGame(player, false);
 
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
-    if (wall) {
-      game.gameControl.moveWall(pos, wall);
-    } else {
-      game.gameControl.movePawn(pos);
-    }
+    game.gameControl.moveCallback(pos, wall);
     gameSocket.emit("move", moveToString(pos, wall));
   };
 
@@ -45,14 +41,8 @@ export default function Game() {
 
     gameSocket.on("move", (move: string) => {
       game.historyControl.goForward(Infinity);
-
       const { pos, wall } = stringToMove(move);
-
-      if (wall) {
-        game.gameControl.moveWall(pos, wall);
-      } else {
-        game.gameControl.movePawn(pos);
-      }
+	  game.gameControl.moveCallback(pos, wall);
     });
 
     gameSocket.on("win", (winner: number, reason?: string) => {

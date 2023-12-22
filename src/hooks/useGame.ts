@@ -13,8 +13,7 @@ type FinishedGameState = {
 
 export type Game = {
   gameControl: {
-    moveWall: (pos: PawnPos, wall: Wall) => void;
-    movePawn: (pos: PawnPos) => void;
+    moveCallback: (pos: PawnPos, wall?: Wall) => void;
     reverseBoard: () => void;
     restart: () => void;
     setWinner: Dispatch<SetStateAction<FinishedGameState | null>>;
@@ -149,6 +148,15 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
     moveCallbackHistory(pos, wall);
   };
 
+
+  const moveCallback = (pos: PawnPos, wall?: Wall) => {
+    if (wall) {
+      moveWall(pos, wall);
+    } else {
+      movePawn(pos);
+    }
+  }
+
   const restart = () => {
     setWhitePawnPos(WHITE_START);
     setBlackPawnPos(BLACK_START);
@@ -191,8 +199,7 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
   };
 
   let gameControl = {
-    moveWall,
-    movePawn,
+	moveCallback,
     reverseBoard,
     restart,
     setWinner,

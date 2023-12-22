@@ -10,14 +10,6 @@ import { useState } from "react";
 export default function Offline() {
   const game = useGame(null);
 
-  const moveCallback = (pos: PawnPos, wall?: Wall) => {
-    if (wall) {
-      game.gameControl.moveWall(pos, wall);
-    } else {
-      game.gameControl.movePawn(pos);
-    }
-  };
-
   return (
     <>
       {game.gameControl.winner != null && (
@@ -37,7 +29,7 @@ export default function Offline() {
           <Board
             boardState={game.boardState}
             boardSettings={game.boardSettings}
-            moveCallback={moveCallback}
+            moveCallback={game.gameControl.moveCallback}
           />
           {game.boardSettings.reversed ? (
             <h1>Black walls left: {game.gameControl.blackWallsLeft}</h1>
