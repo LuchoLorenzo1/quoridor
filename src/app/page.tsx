@@ -16,10 +16,10 @@ export default function Home() {
     socket.connect();
 
     if (socket.connected) {
-	  socket.emit("reconnectGame")
+      socket.emit("reconnectGame");
     } else {
       socket.once("connect", () => {
-		socket.emit("reconnectGame")
+        socket.emit("reconnectGame");
       });
     }
 
@@ -39,36 +39,36 @@ export default function Home() {
   return (
     <div className="w-screen h-screen flex justify-center items-center flex-col gap-5">
       <h1 className="text-4xl">Quoridor</h1>
-	  <div className="flex flex-col items-center gap-5">
-      <div className="h-12 flex gap-5">
-        {status == "authenticated" && (
+      <div className="flex flex-col items-center gap-5">
+        <div className="h-12 flex gap-5">
+          {status == "authenticated" && (
+            <button
+              className="h-full px-4 py-2 bg-green-500 text-white hover:bg-green-400 shadow-black"
+              disabled={loading}
+              onClick={searchGame}
+            >
+              {loading ? (
+                <Spinner className="border-white w-4 h-4" />
+              ) : (
+                "PLAY ONLINE"
+              )}
+            </button>
+          )}
           <button
             className="h-full px-4 py-2 bg-green-500 text-white hover:bg-green-400 shadow-black"
-            disabled={loading}
-            onClick={searchGame}
+            onClick={() => router.push("/offline")}
           >
-            {loading ? (
-              <Spinner className="border-white w-4 h-4" />
-            ) : (
-              "PLAY ONLINE"
-            )}
+            PLAY OFFLINE
+          </button>
+        </div>
+        {reconnectGameId && (
+          <button
+            className="font-bold h-full px-4 py-2 bg-orange-500 text-white hover:bg-orange-400 shadow-black"
+            onClick={() => router.push(`game/${reconnectGameId}`)}
+          >
+            Reconnect To Game
           </button>
         )}
-        <button
-          className="h-full px-4 py-2 bg-green-500 text-white hover:bg-green-400 shadow-black"
-          onClick={() => router.push("/offline")}
-        >
-          PLAY OFFLINE
-        </button>
-	  </div>
-	  { reconnectGameId &&
-       <button
-          className="font-bold h-full px-4 py-2 bg-orange-500 text-white hover:bg-orange-400 shadow-black"
-          onClick={() => router.push(`game/${reconnectGameId}`)}
-        >
-          Reconnect To Game
-        </button>
-	  }
       </div>
     </div>
   );

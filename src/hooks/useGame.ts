@@ -148,14 +148,13 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
     moveCallbackHistory(pos, wall);
   };
 
-
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
     if (wall) {
       moveWall(pos, wall);
     } else {
       movePawn(pos);
     }
-  }
+  };
 
   const restart = () => {
     setWhitePawnPos(WHITE_START);
@@ -199,7 +198,7 @@ const useGame = (player: number | null, defineWinner: boolean = true): Game => {
   };
 
   let gameControl = {
-	moveCallback,
+    moveCallback,
     reverseBoard,
     restart,
     setWinner,
