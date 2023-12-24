@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function useTimer({
   initialSeconds,
+  delay = 100,
   autoStart = true,
 }: {
   initialSeconds: number;
+  delay?: number;
   autoStart?: boolean;
 }) {
   const [seconds, _setSeconds] = useState(initialSeconds);
@@ -37,10 +39,11 @@ export default function useTimer({
       clear = setInterval(() => {
         if (_seconds.current - 1 <= 0) {
           setSeconds(0);
+          clearInterval(clear);
           return setIsRunning(false);
         }
         setSeconds(_seconds.current - 1);
-      }, 100);
+      }, delay);
     }
 
     return () => {
@@ -52,6 +55,7 @@ export default function useTimer({
     minutes: Math.floor(seconds / 600),
     seconds: Math.floor((seconds % 600) / 10),
     tenths: Math.floor(seconds % 10),
+    totalSeconds: seconds,
     pause,
     resume,
     restart,

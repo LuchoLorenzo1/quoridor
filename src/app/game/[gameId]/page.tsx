@@ -20,8 +20,16 @@ export default function OnlineGame() {
   const game = useGame(player, false);
   const whiteTimer = useTimer({ initialSeconds: 600, autoStart: false });
   const blackTimer = useTimer({ initialSeconds: 600, autoStart: false });
+  const abortTimer = useTimer({
+    initialSeconds: 10,
+    autoStart: false,
+    delay: 1000,
+  });
+  const [gameAborted, setGameAborted] = useState(false);
 
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
+    if (game.historyControl.activeMove == 0) abortTimer.restart(10, true);
+
     game.gameControl.moveCallback(pos, wall);
     gameSocket.emit("move", moveToString(pos, wall), (timeLeft: number) => {
       if (playerRef.current == 0) {
@@ -53,11 +61,18 @@ export default function OnlineGame() {
     );
 
     gameSocket.on("start", () => {
-      whiteTimer.resume();
+      abortTimer.restart(10, true);
     });
 
+    let moves = 0;
     gameSocket.on("move", (move: string, timeLeft: number) => {
       game.historyControl.goForward(Infinity);
+      if (moves == 0) {
+        abortTimer.restart(10, true);
+      } else {
+        moves++;
+      }
+
       const { pos, wall } = stringToMove(move);
 
       if (playerRef.current == 0) {
@@ -73,6 +88,12 @@ export default function OnlineGame() {
 
     gameSocket.on("win", (winner: number, reason?: string) => {
       game.gameControl.setWinner({ winner, reason });
+    });
+
+    gameSocket.on("abortGame", () => {
+      setGameAborted(true);
+      whiteTimer.pause();
+      blackTimer.pause();
     });
 
     if (gameSocket.connected) {
@@ -95,10 +116,13 @@ export default function OnlineGame() {
     <div className="flex justify-center items-center gap-5 h-full w-full">
       {game.gameControl.winner != null && (
         <GameOverModal
-          win={game.gameControl.winner.winner == player}
+          title={
+            game.gameControl.winner.winner == player ? "You won!" : "You lost!"
+          }
           text={game.gameControl.winner.reason}
         />
       )}
+      {gameAborted && <GameOverModal title={"Game Aborted"} />}
       <div
         className={`flex ${
           game.boardSettings.reversed ? "flex-col-reverse" : "flex-col"
@@ -113,6 +137,13 @@ export default function OnlineGame() {
           </span>
           .<span>{blackTimer.tenths.toString()}</span>
         </div>
+        <h1>
+          {!gameAborted &&
+          game.historyControl.activeMove == 1 &&
+          abortTimer.totalSeconds < 6
+            ? `aborting in ${abortTimer.totalSeconds}...`
+            : ""}
+        </h1>
         <Board
           boardState={game.boardState}
           boardSettings={game.boardSettings}
@@ -127,6 +158,13 @@ export default function OnlineGame() {
           </span>
           .<span>{whiteTimer.tenths.toString()}</span>
         </div>
+        <h1>
+          {!gameAborted &&
+          game.historyControl.activeMove == 0 &&
+          abortTimer.totalSeconds < 6
+            ? `aborting in ${abortTimer.totalSeconds}...`
+            : ""}
+        </h1>
       </div>
       <div className="flex flex-col gap-5 h-3/4 justify-center items-center">
         <GameMenu historyControl={game.historyControl} />
