@@ -23,39 +23,48 @@ export default function OnlineGame() {
 
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
     game.gameControl.moveCallback(pos, wall);
-    if (playerRef.current == 0) {
-      whiteTimer.pause();
-      blackTimer.resume();
-    } else {
-      blackTimer.pause();
-      whiteTimer.resume();
-    }
-    gameSocket.emit("move", moveToString(pos, wall));
+    gameSocket.emit("move", moveToString(pos, wall), (timeLeft: number) => {
+      if (playerRef.current == 0) {
+        whiteTimer.restart(timeLeft * 10, false);
+        blackTimer.resume();
+      } else {
+        blackTimer.restart(timeLeft * 10, false);
+        whiteTimer.resume();
+      }
+      console.log(timeLeft);
+    });
   };
 
   useEffect(() => {
-    gameSocket.on("start", (history: string[], t: number, p: number) => {
-      setPlayer(p);
-      playerRef.current = p;
-      game.gameControl.setTurn(t);
-      game.historyControl.setHistory(history);
-      game.historyControl.goForward(Infinity);
+    gameSocket.on(
+      "gameState",
+      (history: string[], t: number, p: number, seconds: number) => {
+        setPlayer(p);
+        playerRef.current = p;
+        game.gameControl.setTurn(t);
+        game.historyControl.setHistory(history);
+        game.historyControl.goForward(Infinity);
 
-      whiteTimer.restart(600, t == 0);
-      blackTimer.restart(600, t == 1);
+        whiteTimer.restart(seconds * 10, false);
+        blackTimer.restart(seconds * 10, false);
 
-      if (p == 1) game.gameControl.reverseBoard();
+        if (p == 1) game.gameControl.reverseBoard();
+      },
+    );
+
+    gameSocket.on("start", () => {
+      whiteTimer.resume();
     });
 
-    gameSocket.on("move", (move: string) => {
+    gameSocket.on("move", (move: string, timeLeft: number) => {
       game.historyControl.goForward(Infinity);
       const { pos, wall } = stringToMove(move);
 
       if (playerRef.current == 0) {
-        blackTimer.pause();
+        blackTimer.restart(timeLeft * 10, false);
         whiteTimer.resume();
       } else {
-        whiteTimer.pause();
+        whiteTimer.restart(timeLeft * 10, false);
         blackTimer.resume();
       }
 
@@ -64,23 +73,18 @@ export default function OnlineGame() {
 
     gameSocket.on("win", (winner: number, reason?: string) => {
       game.gameControl.setWinner({ winner, reason });
-      blackTimer.pause();
-      whiteTimer.pause();
     });
 
     if (gameSocket.connected) {
-      gameSocket.emit("start");
+      gameSocket.emit("ready");
     } else {
       gameSocket.connect();
       gameSocket.once("connect", () => {
-        gameSocket.emit("start");
+        gameSocket.emit("ready");
       });
     }
 
     return () => {
-      gameSocket.off("start");
-      gameSocket.off("move");
-      gameSocket.off("win");
       gameSocket.disconnect();
     };
   }, []);
@@ -107,6 +111,7 @@ export default function OnlineGame() {
             {(blackTimer.seconds.toString().length == 1 ? "0" : "") +
               blackTimer.seconds.toString()}
           </span>
+          .<span>{blackTimer.tenths.toString()}</span>
         </div>
         <Board
           boardState={game.boardState}
@@ -120,6 +125,7 @@ export default function OnlineGame() {
             {(whiteTimer.seconds.toString().length == 1 ? "0" : "") +
               whiteTimer.seconds.toString()}
           </span>
+          .<span>{whiteTimer.tenths.toString()}</span>
         </div>
       </div>
       <div className="flex flex-col gap-5 h-3/4 justify-center items-center">

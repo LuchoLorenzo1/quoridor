@@ -35,9 +35,12 @@ export default function useTimer({
     let clear: any;
     if (isRunning) {
       clear = setInterval(() => {
-        if (_seconds.current <= 0) return setIsRunning(false);
+        if (_seconds.current - 1 <= 0) {
+          setSeconds(0);
+          return setIsRunning(false);
+        }
         setSeconds(_seconds.current - 1);
-      }, 1000);
+      }, 100);
     }
 
     return () => {
@@ -46,8 +49,9 @@ export default function useTimer({
   }, [isRunning]);
 
   return {
-    minutes: Math.floor((seconds % 3600) / 60),
-    seconds: Math.floor(seconds % 60),
+    minutes: Math.floor(seconds / 600),
+    seconds: Math.floor((seconds % 600) / 10),
+    tenths: Math.floor(seconds % 10),
     pause,
     resume,
     restart,

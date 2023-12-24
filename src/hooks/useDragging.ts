@@ -50,7 +50,8 @@ const useDragging = (
 
     let row = +_row;
     let col = +_col;
-    e.dataTransfer.setDragImage(document.createElement("span"), 0, 0);
+
+    e.dataTransfer.setDragImage(e.target as HTMLDivElement, -9999, -9999);
 
     setCurrentDraggingCell({ x: row, y: col });
     let adjs = getPossibleMoves(
