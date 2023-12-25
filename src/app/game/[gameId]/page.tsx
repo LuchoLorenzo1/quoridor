@@ -39,22 +39,31 @@ export default function OnlineGame() {
         blackTimer.restart(timeLeft * 10, false);
         whiteTimer.resume();
       }
-      console.log(timeLeft);
     });
   };
 
   useEffect(() => {
     gameSocket.on(
       "gameState",
-      (history: string[], t: number, p: number, seconds: number) => {
+      (
+        history: string[],
+        t: number,
+        p: number,
+        whiteTimeLeft: number,
+        blackTimeLeft: number,
+      ) => {
         setPlayer(p);
         playerRef.current = p;
-        game.gameControl.setTurn(t);
+        game.gameControl.setTurn(t == -1 ? 0 : t);
         game.historyControl.setHistory(history);
         game.historyControl.goForward(Infinity);
 
-        whiteTimer.restart(seconds * 10, false);
-        blackTimer.restart(seconds * 10, false);
+        whiteTimer.restart(whiteTimeLeft * 10, history.length > 0 && t == 0);
+        blackTimer.restart(blackTimeLeft * 10, t == 1);
+
+        if (history.length > 1 && t != -1) {
+          abortTimer.pause();
+        }
 
         if (p == 1) game.gameControl.reverseBoard();
       },
@@ -88,12 +97,16 @@ export default function OnlineGame() {
 
     gameSocket.on("win", (winner: number, reason?: string) => {
       game.gameControl.setWinner({ winner, reason });
+      whiteTimer.pause();
+      blackTimer.pause();
+      abortTimer.pause();
     });
 
     gameSocket.on("abortGame", () => {
       setGameAborted(true);
       whiteTimer.pause();
       blackTimer.pause();
+      abortTimer.pause();
     });
 
     if (gameSocket.connected) {
@@ -109,6 +122,14 @@ export default function OnlineGame() {
       gameSocket.disconnect();
     };
   }, []);
+
+  const resign = () => {
+    gameSocket.emit("resign");
+    whiteTimer.pause();
+    blackTimer.pause();
+    abortTimer.pause();
+    setGameAborted(true);
+  };
 
   if (player == null) return <h1>Loading</h1>;
 
@@ -176,7 +197,7 @@ export default function OnlineGame() {
         </button>
         <button
           className="w-3/4 rounded px-4 py-2 bg-red-200 hover:bg-red-500"
-          onClick={() => gameSocket.emit("resign")}
+          onClick={resign}
         >
           Resign
         </button>
