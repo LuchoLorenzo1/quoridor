@@ -222,7 +222,7 @@ function OnlineGame({
           <div
             className={`flex ${
               game.boardSettings.reversed ? "flex-col-reverse" : "flex-col"
-            } justify-center items-center w-full gap-2 col-span-10 lg:col-span-8 xl:col-span-7`}
+            } max-w-fit justify-center items-center w-full gap-3 col-span-10 lg:col-span-8 xl:col-span-7`}
           >
             <GameUserData
               playerData={blackPlayerData}

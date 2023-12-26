@@ -1,4 +1,4 @@
-import { RefObject, createRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const GameMenu = ({
   historyControl: { history, activeMove, goBack, goForward },
@@ -12,13 +12,7 @@ const GameMenu = ({
 }) => {
   const pairs = pairElements(history);
 
-  const refs = pairs.reduce<Record<number, RefObject<HTMLDivElement>>>(
-    (acc, _, i) => {
-      acc[i] = createRef<HTMLDivElement>();
-      return acc;
-    },
-    {},
-  );
+  const refScroll = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!history) return;
@@ -26,11 +20,11 @@ const GameMenu = ({
     let refIndex = activeMove == 0 ? 0 : Math.floor((activeMove - 1) / 2);
     if (refIndex < 0 || refIndex >= history.length) return;
 
-    let divRef = refs[refIndex].current;
+    let divRef = refScroll.current;
     if (divRef != null)
-      divRef.scrollIntoView({
+      divRef.scrollTo({
+        top: refIndex * 50,
         behavior: "smooth",
-        block: "center",
       });
   }, [activeMove]);
 
@@ -38,10 +32,13 @@ const GameMenu = ({
 
   return (
     <div className="flex flex-col max-h-[50%] h-1/2 w-full">
-      <div className="w-full bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white mb-2">
+      <div
+        ref={refScroll}
+        className="w-full bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white mb-2"
+      >
         {pairs.map((m, i) => {
           return (
-            <div ref={refs[i]} className="gap-2 flex items-center mb-1" key={i}>
+            <div className="gap-2 flex items-center mb-1" key={i}>
               <h2 className="select-none">{i + 1}.</h2>
               <MoveButton
                 i={1 + i * 2}
