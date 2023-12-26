@@ -23,11 +23,11 @@ const Wall = ({
     }
   }
 
-  const size = horizontal ? "w-12 h-4" : "h-12 w-4";
+  const size = horizontal ? "h-0 pb-[33.333%] w-full" : "h-0 pb-[300%] w-full";
 
   return (
     <div
-      className={`${color} ${size}`}
+      className={`${color} ${size} z-20`}
       id={horizontal ? `horizontal-wall` : `vertical-wall`}
       data-row={row}
       data-col={col}

@@ -7,15 +7,19 @@ const WallCol = ({
   f,
   col,
   reversed,
+  size,
 }: {
   f: CellState[];
   col: number;
   reversed: boolean;
+  size: string;
 }) => {
   if (col >= 8) return;
 
   return (
-    <div className={`flex ${reversed ? "flex-col" : "flex-col-reverse"}`}>
+    <div
+      className={`flex ${reversed ? "flex-col" : "flex-col-reverse"} ${size}`}
+    >
       {f.map((cell, row) => {
         return (
           <Fragment key={row}>

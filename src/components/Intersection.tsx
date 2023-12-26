@@ -19,7 +19,7 @@ const Intersection = ({
   return (
     <div
       id="intersection"
-      className={`${color} w-4 h-4`}
+      className={`${color} w-full h-0 pb-[100%]`}
       data-row={row}
       data-col={col}
     />

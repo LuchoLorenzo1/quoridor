@@ -27,17 +27,17 @@ const GameMenu = ({
     if (refIndex < 0 || refIndex >= history.length) return;
 
     let divRef = refs[refIndex].current;
-    // if (divRef != null)
-      // divRef.scrollIntoView({
-      //   behavior: "smooth",
-      //   block: "center",
-      // });
+    if (divRef != null)
+      divRef.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
   }, [activeMove]);
 
   if (!history) return;
 
   return (
-    <div className="flex flex-col h-1/2 w-full">
+    <div className="flex flex-col max-h-[50%] h-1/2 w-full">
       <div className="w-full bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white mb-2">
         {pairs.map((m, i) => {
           return (
@@ -105,7 +105,7 @@ const ControlToolBar = ({
   activeMove: number;
 }) => {
   return (
-    <div className="flex gap-1">
+    <div className="flex justify-center gap-1">
       <button
         onClick={() => goBack(0)}
         className="select-none px-3 py-1 bg-green-500 rounded-md"

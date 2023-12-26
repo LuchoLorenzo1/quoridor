@@ -7,13 +7,17 @@ const CellCol = ({
   col,
   f,
   reversed,
+  size,
 }: {
   col: number;
   f: CellState[];
   reversed: boolean;
+  size: string;
 }) => {
   return (
-    <div className={`flex ${reversed ? "flex-col" : "flex-col-reverse"}`}>
+    <div
+      className={`flex ${reversed ? "flex-col" : "flex-col-reverse"} ${size}`}
+    >
       {f.map((cell, row) => {
         return (
           <Fragment key={`${row}${col}`}>

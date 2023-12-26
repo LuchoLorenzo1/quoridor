@@ -204,75 +204,75 @@ function OnlineGame({
   };
 
   return (
-  <>
-		  <div className="flex justify-center items-center gap-5 h-full w-full bg-blue-500">
-			{game.gameControl.winner != null && (
-			  <GameOverModal
-				title={
-				  game.gameControl.winner.winner == gameData.player
-					? "You won!"
-					: "You lost!"
-				}
-				text={game.gameControl.winner.reason}
-			  />
-			)}
-			{gameAborted && <GameOverModal title={"Game Aborted"} />}
+    <>
+      <div className="flex justify-center items-center gap-5 h-full w-full">
+        {game.gameControl.winner != null && (
+          <GameOverModal
+            title={
+              game.gameControl.winner.winner == gameData.player
+                ? "You won!"
+                : "You lost!"
+            }
+            text={game.gameControl.winner.reason}
+          />
+        )}
+        {gameAborted && <GameOverModal title={"Game Aborted"} />}
 
-	  <div className="grid grid-cols-10 gap-10 place-items-center w-full max-w-4xl h-full bg-zinc-500">
-      <div
-        className={`flex ${
-          game.boardSettings.reversed ? "flex-col-reverse" : "flex-col"
-        } justify-center items-center w-full gap-2 bg-red-500 col-span-10 md:col-span-7`}
-      >
-        <GameUserData
-          playerData={blackPlayerData}
-          timer={blackTimer}
-          wallsLeft={game.gameControl.blackWallsLeft}
-          color="black"
-        />
-        <Board
-          boardState={game.boardState}
-          boardSettings={game.boardSettings}
-          moveCallback={moveCallback}
-        />
-        <GameUserData
-          playerData={whitePlayerData}
-          timer={whiteTimer}
-          wallsLeft={game.gameControl.whiteWallsLeft}
-        />
+        <div className="grid grid-cols-10 gap-10 place-items-center w-full max-w-7xl h-full">
+          <div
+            className={`flex ${
+              game.boardSettings.reversed ? "flex-col-reverse" : "flex-col"
+            } justify-center items-center w-full gap-2 col-span-10 lg:col-span-8 xl:col-span-7`}
+          >
+            <GameUserData
+              playerData={blackPlayerData}
+              timer={blackTimer}
+              wallsLeft={game.gameControl.blackWallsLeft}
+              color="black"
+            />
+            <Board
+              boardState={game.boardState}
+              boardSettings={game.boardSettings}
+              moveCallback={moveCallback}
+            />
+            <GameUserData
+              playerData={whitePlayerData}
+              timer={whiteTimer}
+              wallsLeft={game.gameControl.whiteWallsLeft}
+            />
+          </div>
+          <div className="col-span-full col-start-3 col-end-9 lg:col-span-2 xl:col-span-3 flex flex-col gap-5 w-full h-full items-center">
+            <GameMenu historyControl={game.historyControl} />
+            <button
+              className="w-3/4 rounded px-4 py-2 bg-blue-400 hover:bg-blue-500"
+              onClick={game.gameControl.reverseBoard}
+            >
+              Flip Board
+            </button>
+            <button
+              className="w-3/4 rounded px-4 py-2 bg-red-200 hover:bg-red-500"
+              onClick={resign}
+            >
+              Resign
+            </button>
+            <h1>
+              {!gameAborted &&
+              game.historyControl.history.length == 1 &&
+              abortTimer.totalSeconds < 6
+                ? `aborting in ${abortTimer.totalSeconds}...`
+                : ""}
+            </h1>
+            <h1>
+              {!gameAborted &&
+              game.historyControl.history.length == 0 &&
+              abortTimer.totalSeconds < 6
+                ? `aborting in ${abortTimer.totalSeconds}...`
+                : ""}
+            </h1>
+          </div>
+        </div>
       </div>
-      <div className="col-span-full col-start-3 col-end-9 md:col-span-3 flex flex-col gap-5 w-full h-full items-center bg-pink-500">
-        <GameMenu historyControl={game.historyControl} />
-        <button
-          className="w-3/4 rounded px-4 py-2 bg-blue-400 hover:bg-blue-500"
-          onClick={game.gameControl.reverseBoard}
-        >
-          Flip Board
-        </button>
-        <button
-          className="w-3/4 rounded px-4 py-2 bg-red-200 hover:bg-red-500"
-          onClick={resign}
-        >
-          Resign
-        </button>
-        <h1>
-          {!gameAborted &&
-          game.historyControl.history.length == 1 &&
-          abortTimer.totalSeconds < 6
-            ? `aborting in ${abortTimer.totalSeconds}...`
-            : ""}
-        </h1>
-        <h1>
-          {!gameAborted &&
-          game.historyControl.history.length == 0 &&
-          abortTimer.totalSeconds < 6
-            ? `aborting in ${abortTimer.totalSeconds}...`
-            : ""}
-        </h1>
-      </div>
-    </div>
-  </div>
-	</>
+    </>
   );
 }
 

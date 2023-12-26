@@ -236,8 +236,18 @@ const Board = ({
       {matrix.map((f, col) => {
         return (
           <Fragment key={col}>
-            <CellCol reversed={reversed} col={col} f={f} />
-            <WallCol reversed={reversed} col={col} f={f} />
+            <CellCol
+              reversed={reversed}
+              col={col}
+              f={f}
+              size="min-w-[2.5rem] sm:w-[3.3rem]  md:w-[3.5rem] lg:w-[3.9rem]"
+            />
+            <WallCol
+              reversed={reversed}
+              col={col}
+              f={f}
+              size="min-w-[0.833333rem] sm:w-[1.1rem] md:w-[1.166667rem] lg:w-[1.3rem]"
+            />
           </Fragment>
         );
       })}
