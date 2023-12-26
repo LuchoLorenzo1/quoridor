@@ -27,18 +27,18 @@ const GameMenu = ({
     if (refIndex < 0 || refIndex >= history.length) return;
 
     let divRef = refs[refIndex].current;
-    if (divRef != null)
-      divRef.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+    // if (divRef != null)
+      // divRef.scrollIntoView({
+      //   behavior: "smooth",
+      //   block: "center",
+      // });
   }, [activeMove]);
 
   if (!history) return;
 
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <div className="w-52 bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white mb-2">
+    <div className="flex flex-col h-1/2 w-full">
+      <div className="w-full bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white mb-2">
         {pairs.map((m, i) => {
           return (
             <div ref={refs[i]} className="gap-2 flex items-center mb-1" key={i}>
