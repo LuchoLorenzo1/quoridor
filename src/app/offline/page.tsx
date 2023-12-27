@@ -1,5 +1,5 @@
 "use client";
-import Board, { PawnPos, Wall } from "@/components/Board";
+import Board from "@/components/Board";
 import GameMenu from "@/components/GameMenu";
 import useGame from "@/hooks/useGame";
 

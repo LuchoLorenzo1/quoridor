@@ -18,6 +18,10 @@ interface GameData {
   players: string[];
   whiteTimeLeft: number;
   blackTimeLeft: number;
+  wallsLeft: {
+    white: number;
+    black: number;
+  };
 }
 
 interface UserData {
@@ -26,7 +30,7 @@ interface UserData {
   name: string;
 }
 
-export default function Game() {
+export default function Game({ params }: { params: { gameId: number } }) {
   const [loading, setLoading] = useState(true);
   const gameSocket = useRef<Socket | null>(null);
   const [gameData, setGameData] = useState<GameData | null>(null);
@@ -40,8 +44,7 @@ export default function Game() {
   });
 
   useEffect(() => {
-    console.log("corre useEffect");
-    gameSocket.current = io("http://localhost:8000/game", {
+    gameSocket.current = io(`http://localhost:8000/game/${params.gameId}`, {
       withCredentials: true,
       autoConnect: true,
     });
@@ -49,9 +52,14 @@ export default function Game() {
     gameSocket.current.once("gameState", (game: GameData) => {
       setGameData(game);
 
-      console.log("haciendo los fetchs");
-      let f1 = fetch(`/api/users/${game.players[0]}`).then((res) => res.json());
-      let f2 = fetch(`/api/users/${game.players[1]}`).then((res) => res.json());
+      let f1 = fetch(`/api/users/${game.players[0]}`).then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      });
+      let f2 = fetch(`/api/users/${game.players[1]}`).then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      });
 
       Promise.all([f1, f2])
         .then((res) => {
@@ -102,7 +110,7 @@ function OnlineGame({
   whitePlayerData: UserData;
   blackPlayerData: UserData;
 }) {
-  const game = useGame(gameData.player, false);
+  const game = useGame(gameData.player, gameData.wallsLeft, false);
   const whiteTimer = useTimer({
     initialSeconds: gameData.whiteTimeLeft * 10,
     autoStart: gameData.history.length > 0 && gameData.turn == 0,
@@ -304,7 +312,7 @@ const GameUserData = ({
           <div className="flex items-center gap-2">
             {Array(wallsLeft)
               .fill(0)
-              .map((i) => (
+              .map((_, i) => (
                 <span key={i} className="bg-yellow-400 w-2 h-5" />
               ))}
             <h3 className="text-xs font-thin">x({wallsLeft})</h3>
