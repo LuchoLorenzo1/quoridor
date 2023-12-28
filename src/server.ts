@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:8000", {
+console.log(process.env.WS_URL);
+const socket = io(process.env.WS_URL || "http://localhost:8000", {
   withCredentials: true,
   autoConnect: false,
 });

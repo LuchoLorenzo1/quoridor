@@ -17,9 +17,11 @@ export default function PostgresAdapter(): Adapter {
       if (!user.name || !user.email || !user.image)
         throw Error(`No esta pidiendo todo ${user}`);
 
+      let name = user.name.split(" ")[0];
+
       const rows = await sql`
         INSERT INTO users (name, email, image)
-        VALUES (${user.name}, ${user.email}, ${user.image})
+        VALUES (${name}, ${user.email}, ${user.image})
         RETURNING id, name, email, email_verified, image`;
 
       const newUser: AdapterUser = {
