@@ -44,10 +44,13 @@ export default function Game({ params }: { params: { gameId: number } }) {
   });
 
   useEffect(() => {
-    gameSocket.current = io(`http://localhost:8000/game/${params.gameId}`, {
-      withCredentials: true,
-      autoConnect: true,
-    });
+    gameSocket.current = io(
+      `${process.env.WS_URL || "http://localhost:8000/"}game/${params.gameId}`,
+      {
+        withCredentials: true,
+        autoConnect: true,
+      },
+    );
 
     gameSocket.current.once("gameState", (game: GameData) => {
       setGameData(game);
@@ -298,7 +301,7 @@ const GameUserData = ({
   return (
     <div className="flex items-center justify-between w-full h-full">
       <div className="flex gap-2">
-        <Link href="/profile">
+        <Link href={`/profile/${playerData.id}`}>
           <Image
             src={playerData?.image || "/default_profile_picture.png"}
             width={45}

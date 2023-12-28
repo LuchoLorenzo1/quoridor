@@ -36,7 +36,7 @@ const GameOverModal = ({ title, text }: { title: string; text?: string }) => {
     <Dialog.Root open={open} onOpenChange={() => setOpen(!open)}>
       <Dialog.Portal>
         <Dialog.Overlay className="bg-black/10 data-[state=open]:animate-overlayShow fixed inset-0" />
-        <Dialog.Content className="flex flex-col gap-5 w-60 items-center text-white bg-zinc-500 z-50 p-5 rounded-md absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <Dialog.Content className="flex flex-col gap-5 w-60 items-center text-white bg-zinc-500 z-50 p-5 rounded-md fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <Dialog.Close
             asChild
             className="focus:shadown-none focus:border-none focus:outline-none active:outline-none"
