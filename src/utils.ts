@@ -145,9 +145,12 @@ export const getPossibleMoves = (
         // Es porque el otro esta para arriba
         if (walls[pawnPos.y][pawnPos.x + 1].row != 0 || pawnPos.x + x > 8) {
           x -= 1;
-          if (walls[pawnPos.y][pawnPos.x + 1].col == 0)
+          if (pawnPos.y + 1 <= 8 && walls[pawnPos.y][pawnPos.x + 1].col == 0)
             adjss.push({ x: pawnPos.x + x, y: pawnPos.y + 1 });
-          if (walls[pawnPos.y - 1][pawnPos.x + 1].col == 0)
+          if (
+            pawnPos.y - 1 >= 0 &&
+            walls[pawnPos.y - 1][pawnPos.x + 1].col == 0
+          )
             adjss.push({ x: pawnPos.x + x, y: pawnPos.y - 1 });
         } else {
           adjss.push({ x: pawnPos.x + x, y: pawnPos.y + y });
@@ -160,9 +163,12 @@ export const getPossibleMoves = (
           pawnPos.x + x < 0
         ) {
           x += 1;
-          if (walls[pawnPos.y][pawnPos.x - 1].col == 0)
+          if (pawnPos.y + 1 <= 8 && walls[pawnPos.y][pawnPos.x - 1].col == 0)
             adjss.push({ x: pawnPos.x + x, y: pawnPos.y + 1 });
-          if (walls[pawnPos.y - 1][pawnPos.x - 1].col == 0)
+          if (
+            pawnPos.y - 1 >= 0 &&
+            walls[pawnPos.y - 1][pawnPos.x - 1].col == 0
+          )
             adjss.push({ x: pawnPos.x + x, y: pawnPos.y - 1 });
         } else {
           adjss.push({ x: pawnPos.x + x, y: pawnPos.y + y });
@@ -172,9 +178,12 @@ export const getPossibleMoves = (
         // Es porque el otro esta para derecha
         if (walls[pawnPos.y + 1][pawnPos.x].col != 0 || pawnPos.y + y > 8) {
           y -= 1;
-          if (walls[pawnPos.y + 1][pawnPos.x].row == 0)
+          if (pawnPos.x + 1 <= 8 && walls[pawnPos.y + 1][pawnPos.x].row == 0)
             adjss.push({ x: pawnPos.x + 1, y: pawnPos.y + y });
-          if (walls[pawnPos.y + 1][pawnPos.x - 1].row == 0)
+          if (
+            pawnPos.x - 1 >= 0 &&
+            walls[pawnPos.y + 1][pawnPos.x - 1].row == 0
+          )
             adjss.push({ x: pawnPos.x - 1, y: pawnPos.y + y });
         } else {
           adjss.push({ x: pawnPos.x + x, y: pawnPos.y + y });
@@ -187,9 +196,12 @@ export const getPossibleMoves = (
           pawnPos.y + y < 0
         ) {
           y += 1;
-          if (walls[pawnPos.y - 1][pawnPos.x].row == 0)
+          if (pawnPos.x + 1 <= 8 && walls[pawnPos.y - 1][pawnPos.x].row == 0)
             adjss.push({ x: pawnPos.x + 1, y: pawnPos.y + y });
-          if (walls[pawnPos.y - 1][pawnPos.x - 1].row == 0)
+          if (
+            pawnPos.x - 1 >= 0 &&
+            walls[pawnPos.y - 1][pawnPos.x - 1].row == 0
+          )
             adjss.push({ x: pawnPos.x - 1, y: pawnPos.y + y });
         } else {
           adjss.push({ x: pawnPos.x + x, y: pawnPos.y + y });
