@@ -3,7 +3,7 @@ import Board, { PawnPos, Wall } from "@/components/Board";
 import GameMenu from "@/components/GameMenu";
 import GameOverModal from "@/components/GameOverModal";
 import Spinner from "@/components/Spinner";
-import useGame, { Game } from "@/hooks/useGame";
+import useGame from "@/hooks/useGame";
 import useTimer from "@/hooks/useTimer";
 import { moveToString, stringToMove } from "@/utils";
 import Image from "next/image";
@@ -74,12 +74,10 @@ export default function Game({ params }: { params: { gameId: number } }) {
     });
 
     if (gameSocket.current.connected) {
-      console.log("mando getGame", gameSocket.current?.connected);
       gameSocket.current.emit("getGame");
     } else {
       gameSocket.current.connect();
       gameSocket.current.on("connect", () => {
-        console.log("mando getGame", gameSocket.current?.connected);
         gameSocket.current?.emit("getGame");
       });
     }
@@ -158,6 +156,8 @@ function OnlineGame({
     if (gameData.player == 1) game.gameControl.reverseBoard();
 
     gameSocket.on("start", () => {
+	  let sound = new Audio("/Notify.mp3")
+	  sound.play()
       abortTimer.restart(10, true);
     });
 
@@ -185,6 +185,9 @@ function OnlineGame({
 
     gameSocket.on("win", (winner: number, reason?: string) => {
       game.gameControl.setWinner({ winner, reason });
+	  let sound = new Audio("/Notify.mp3")
+	  sound.play()
+
       whiteTimer.pause();
       blackTimer.pause();
       abortTimer.pause();
@@ -192,6 +195,8 @@ function OnlineGame({
 
     gameSocket.on("abortGame", () => {
       setGameAborted(true);
+	  let sound = new Audio("/Notify.mp3")
+	  sound.play()
       whiteTimer.pause();
       blackTimer.pause();
       abortTimer.pause();
@@ -207,8 +212,20 @@ function OnlineGame({
     }
   }, []);
 
+  useEffect(() => {
+		let sound = new Audio("/LowTime.mp3")
+		if (gameData.player == 0  && whiteTimer.lowTime) {
+			sound.play()
+		} else if (gameData.player == 1 && blackTimer.lowTime) {
+			sound.play()
+		}
+  }, [gameData.player == 0 ? whiteTimer.lowTime : blackTimer.lowTime])
+
+
   const resign = () => {
     gameSocket.emit("resign");
+	let sound = new Audio("/Notify.mp3")
+	sound.play()
     whiteTimer.pause();
     blackTimer.pause();
     abortTimer.pause();
@@ -325,7 +342,8 @@ const GameUserData = ({
       <div
         className={`flex items-end justify-end rounded flex-grow max-w-[10rem] h-full py-2
 			${color == "white" ? "bg-stone-200 text-black" : "bg-stone-600 text-white"}
-			${!timer.isRunning && "opacity-50"}`}
+			${!timer.isRunning && "opacity-50"}
+			${timer.lowTime && "bg-red-800 text-white"}`}
       >
         <h1 className="text-left w-1/2 text-2xl font-bold mr-4">
           <span className="">{timer.minutes}</span>:

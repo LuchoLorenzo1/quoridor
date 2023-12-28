@@ -11,7 +11,7 @@ type FinishedGameState = {
   reason?: string;
 };
 
-export type Game = {
+export type GameController = {
   gameControl: {
     moveCallback: (pos: PawnPos, wall?: Wall) => void;
     reverseBoard: () => void;
@@ -45,7 +45,7 @@ const useGame = (
   player: number | null,
   wLeft?: { white: number; black: number },
   defineWinner: boolean = true,
-): Game => {
+): GameController => {
   const [turn, _setTurn] = useState<number>(0);
   const turnRef = useRef(turn);
   const setTurn = (t: number) => {
@@ -91,8 +91,16 @@ const useGame = (
     { pos: blackPawnPos, name: "blackPawn", end: 0, color: "bg-black" },
   ];
 
+  const sounds = useRef({
+	  movePawn: new Audio("/MovePawn.mp3"),
+	  moveWall: new Audio("/MoveWall.mp3"),
+	  end: new Audio("/End.mp3")
+  });
+
   const movePawn = (pos: PawnPos) => {
     if (activeMove != history.length) return;
+
+	sounds.current.movePawn.play()
 
     if (turnRef.current == 0) {
       setWhitePawnPos((p) => {
@@ -108,6 +116,7 @@ const useGame = (
 
     if (pawns[turnRef.current].end == pos.x) {
       if (defineWinner) {
+		sounds.current.end.play()
         setWinner({ winner: turnRef.current });
         setInteractive(false);
       }
@@ -124,6 +133,8 @@ const useGame = (
     if (activeMove != history.length) return;
     if (turnRef.current == 0 && wallsLeft.current.white <= 0) return;
     if (turnRef.current == 1 && wallsLeft.current.black <= 0) return;
+
+	sounds.current.moveWall.play()
 
     setWalls((w) => {
       if (wall.col == 1) {
@@ -188,6 +199,15 @@ const useGame = (
         activeMove == history.length &&
         (turnRef.current == player || player == null),
     );
+
+	if (activeMove > 0) {
+		if (history[activeMove-1]?.includes("h") || history[activeMove-1]?.includes("v")) {
+			sounds.current.moveWall.play()
+		} else {
+			sounds.current.movePawn.play()
+		}
+	}
+
     if (activeMove != history.length) setLastMove(null);
   }, [activeMove]);
 

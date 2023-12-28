@@ -10,6 +10,7 @@ export default function useTimer({
   autoStart?: boolean;
 }) {
   const [seconds, _setSeconds] = useState(initialSeconds);
+  const [lowTime, setLowTime] = useState(false);
   const _seconds = useRef(initialSeconds);
   const setSeconds = (s: number) => {
     _setSeconds(s);
@@ -42,7 +43,8 @@ export default function useTimer({
           clearInterval(clear);
           return setIsRunning(false);
         }
-        setSeconds(_seconds.current - 1);
+		setSeconds(_seconds.current - 1);
+        setLowTime(_seconds.current < 100);
       }, delay);
     }
 
@@ -60,5 +62,6 @@ export default function useTimer({
     resume,
     restart,
     isRunning,
+    lowTime,
   };
 }

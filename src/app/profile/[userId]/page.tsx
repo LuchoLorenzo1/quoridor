@@ -58,7 +58,7 @@ export default async function Profile({ params }: profileProps) {
           </tr>
         </thead>
         <tbody>
-          {games.map((game: Game) => {
+          {games.map((game) => {
             let d = new Date(game.started_at);
             let c = "min-w-[5rem] py-2 px-4 md:py-3";
             return (
@@ -75,7 +75,7 @@ export default async function Profile({ params }: profileProps) {
                           : "border border-zinc-500"
                       }`}
                     />
-                    <h1 className="font-bold">{game.white_name}</h1>
+                    <h1 className="">{game.white_name}</h1>
                   </div>
                   <div className="flex items-center gap-2">
                     <div
@@ -83,7 +83,7 @@ export default async function Profile({ params }: profileProps) {
                         game.white_winner ? "border-black" : "border-lime-600"
                       }`}
                     />
-                    <h1 className="font-bold">{game.black_name}</h1>
+                    <h1 className="">{game.black_name}</h1>
                   </div>
                 </td>
                 <td align="center" className={c}>
