@@ -44,9 +44,11 @@ export type GameController = {
 const useGame = (
   player: number | null,
   wLeft?: { white: number; black: number },
+  initialHistory?: string[],
+  initialTurn?: number,
   defineWinner: boolean = true,
 ): GameController => {
-  const [turn, _setTurn] = useState<number>(0);
+  const [turn, _setTurn] = useState<number>(initialTurn != 1 ? 0 : 1);
   const turnRef = useRef(turn);
   const setTurn = (t: number) => {
     turnRef.current = t;
@@ -78,7 +80,10 @@ const useGame = (
   } = useHistory({
     setWhitePawnPos,
     setBlackPawnPos,
+    setWhiteWallsLeft,
+    setBlackWallsLeft,
     setWalls,
+    initialHistory,
   });
 
   const [lastMove, setLastMove] = useState<PawnPos | null>(null);
@@ -91,16 +96,8 @@ const useGame = (
     { pos: blackPawnPos, name: "blackPawn", end: 0, color: "bg-black" },
   ];
 
-  const sounds = useRef({
-	  movePawn: new Audio("/MovePawn.mp3"),
-	  moveWall: new Audio("/MoveWall.mp3"),
-	  end: new Audio("/End.mp3")
-  });
-
   const movePawn = (pos: PawnPos) => {
     if (activeMove != history.length) return;
-
-	sounds.current.movePawn.play()
 
     if (turnRef.current == 0) {
       setWhitePawnPos((p) => {
@@ -116,7 +113,7 @@ const useGame = (
 
     if (pawns[turnRef.current].end == pos.x) {
       if (defineWinner) {
-		sounds.current.end.play()
+        new Audio("/Notify.mp3").play();
         setWinner({ winner: turnRef.current });
         setInteractive(false);
       }
@@ -133,8 +130,6 @@ const useGame = (
     if (activeMove != history.length) return;
     if (turnRef.current == 0 && wallsLeft.current.white <= 0) return;
     if (turnRef.current == 1 && wallsLeft.current.black <= 0) return;
-
-	sounds.current.moveWall.play()
 
     setWalls((w) => {
       if (wall.col == 1) {
@@ -200,13 +195,16 @@ const useGame = (
         (turnRef.current == player || player == null),
     );
 
-	if (activeMove > 0) {
-		if (history[activeMove-1]?.includes("h") || history[activeMove-1]?.includes("v")) {
-			sounds.current.moveWall.play()
-		} else {
-			sounds.current.movePawn.play()
-		}
-	}
+    if (activeMove > 0) {
+      if (
+        history[activeMove - 1][2] == "h" ||
+        history[activeMove - 1][2] == "v"
+      ) {
+        new Audio("/MoveWall.mp3").play();
+      } else {
+        new Audio("/MovePawn.mp3").play();
+      }
+    }
 
     if (activeMove != history.length) setLastMove(null);
   }, [activeMove]);

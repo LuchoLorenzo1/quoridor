@@ -7,12 +7,18 @@ export const useHistory = ({
   setWhitePawnPos,
   setBlackPawnPos,
   setWalls,
+  setWhiteWallsLeft,
+  setBlackWallsLeft,
+  initialHistory = [],
 }: {
   setWhitePawnPos: Dispatch<SetStateAction<PawnPos>>;
   setBlackPawnPos: Dispatch<SetStateAction<PawnPos>>;
+  setWhiteWallsLeft: Dispatch<SetStateAction<number>>;
+  setBlackWallsLeft: Dispatch<SetStateAction<number>>;
   setWalls: Dispatch<SetStateAction<Wall[][]>>;
+  initialHistory?: string[];
 }) => {
-  const [history, _setHistory] = useState<string[]>([]);
+  const [history, _setHistory] = useState<string[]>(initialHistory);
   const [activeMove, _setActiveMove] = useState<number>(0);
 
   const activeMoveRef = useRef(0);
@@ -21,7 +27,7 @@ export const useHistory = ({
     _setActiveMove(data);
   };
 
-  const historyRef = useRef<string[]>([]);
+  const historyRef = useRef<string[]>(history);
   const setHistory = (data: string[]) => {
     historyRef.current = data;
     _setHistory(data);
@@ -39,14 +45,18 @@ export const useHistory = ({
 
       if (move.wall != undefined) {
         undoWallMove(move.pos, move.wall);
+        if (a % 2 == 0) {
+          setBlackWallsLeft((w) => w + 1);
+        } else {
+          setWhiteWallsLeft((w) => w + 1);
+        }
         continue;
       }
 
       let x = a - 3;
       while (
         x >= 0 &&
-        (historyRef.current[x].includes("h") ||
-          historyRef.current[x].includes("v"))
+        (historyRef.current[x][2] == "h" || historyRef.current[x][2] == "v")
       )
         x -= 2;
 
@@ -117,6 +127,11 @@ export const useHistory = ({
           }
           return w;
         });
+        if (a % 2 == 0) {
+          setWhiteWallsLeft((w) => w - 1);
+        } else {
+          setBlackWallsLeft((w) => w - 1);
+        }
       } else if (a % 2 == 0) {
         wPos = move.pos;
       } else {
@@ -136,6 +151,7 @@ export const useHistory = ({
 
   let keydown = false;
   const handleKeyDown = (e: KeyboardEvent) => {
+    e.preventDefault();
     if (keydown) return;
     keydown = true;
     setTimeout(() => (keydown = false), 50);
@@ -152,6 +168,7 @@ export const useHistory = ({
   };
 
   useEffect(() => {
+    goForward(Infinity);
     addEventListener("keydown", handleKeyDown);
     return () => removeEventListener("keydown", handleKeyDown);
   }, []);

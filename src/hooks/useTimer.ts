@@ -43,7 +43,7 @@ export default function useTimer({
           clearInterval(clear);
           return setIsRunning(false);
         }
-		setSeconds(_seconds.current - 1);
+        setSeconds(_seconds.current - 1);
         setLowTime(_seconds.current < 100);
       }, delay);
     }

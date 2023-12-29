@@ -1,6 +1,7 @@
 import authOptions from "@/app/api/auth/[...nextauth]/auth";
 import { getGamesByUserId } from "@/controllers/games";
 import { getServerSession } from "next-auth";
+import Link from "next/link";
 
 interface profileProps {
   params: {
@@ -60,11 +61,11 @@ export default async function Profile({ params }: profileProps) {
         <tbody>
           {games.map((game) => {
             let d = new Date(game.started_at);
-            let c = "min-w-[5rem] py-2 px-4 md:py-3";
+            let c = "relative min-w-[5rem] py-2 px-4 md:py-3";
             return (
               <tr
                 key={game.id}
-                className="border-b-2 border-b-zinc-500 text-sm"
+                className="border-b-2 border-b-zinc-500 text-sm hover:bg-zinc-300/50"
               >
                 <td align="left" className={`${c} w-40 md:w-64 min-w-[12rem]`}>
                   <div className="flex items-center gap-2">
@@ -75,7 +76,12 @@ export default async function Profile({ params }: profileProps) {
                           : "border border-zinc-500"
                       }`}
                     />
-                    <h1 className="">{game.white_name}</h1>
+                    <Link
+                      className="z-10 hover:font-bold"
+                      href={`/profile/${game.white_player_id}`}
+                    >
+                      {game.white_name}
+                    </Link>
                   </div>
                   <div className="flex items-center gap-2">
                     <div
@@ -83,10 +89,23 @@ export default async function Profile({ params }: profileProps) {
                         game.white_winner ? "border-black" : "border-lime-600"
                       }`}
                     />
-                    <h1 className="">{game.black_name}</h1>
+                    <Link
+                      className="z-10 hover:font-bold"
+                      href={`/profile/${game.black_player_id}`}
+                    >
+                      {game.black_name}
+                    </Link>
                   </div>
+                  <Link
+                    className="absolute inset-0 w-full h-full"
+                    href={`/game/${game.id}`}
+                  />
                 </td>
                 <td align="center" className={c}>
+                  <Link
+                    className="absolute inset-0 w-full h-full"
+                    href={`/game/${game.id}`}
+                  />
                   <div className="flex items-center justify-center gap-2">
                     <div className="flex flex-col items-start">
                       <h1 className="font-bold">{game.white_winner ? 1 : 0}</h1>
@@ -107,9 +126,17 @@ export default async function Profile({ params }: profileProps) {
                   </div>
                 </td>
                 <td align="center" className={c}>
+                  <Link
+                    className="absolute inset-0 w-full h-full"
+                    href={`/game/${game.id}`}
+                  />
                   {game.history.split(" ").length}
                 </td>
                 <td align="right" className={c}>
+                  <Link
+                    className="absolute inset-0 w-full h-full"
+                    href={`/game/${game.id}`}
+                  />
                   {`${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}
                 </td>
               </tr>
