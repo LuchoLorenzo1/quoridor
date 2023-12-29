@@ -46,7 +46,7 @@ export interface BoardComponentProps {
     turn: number;
     walls: Wall[][];
     pawns: Pawn[];
-    lastMove: PawnPos | null;
+    lastMove: PawnPos[];
   };
   boardSettings: {
     reversed: boolean;
@@ -195,10 +195,9 @@ const Board = ({
     };
   }
 
-  if (lastMove) {
-    matrix[lastMove.y][lastMove.x].highlightCell = "bg-orange-300";
-    let p = pawns[turn == 0 ? 1 : 0];
-    matrix[p.pos.y][p.pos.x].highlightCell = "bg-orange-300";
+  if (lastMove.length == 2) {
+    matrix[lastMove[0].y][lastMove[0].x].highlightCell = "bg-orange-300";
+    matrix[lastMove[1].y][lastMove[1].x].highlightCell = "bg-orange-300";
   }
 
   if (currentDraggingCell) {

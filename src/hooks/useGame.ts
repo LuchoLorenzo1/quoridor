@@ -26,7 +26,7 @@ export type GameController = {
     turn: number;
     walls: Wall[][];
     pawns: Pawn[];
-    lastMove: PawnPos | null;
+    lastMove: PawnPos[];
   };
   boardSettings: {
     reversed: boolean;
@@ -72,6 +72,7 @@ const useGame = (
   const {
     history,
     activeMove,
+    lastMove,
     goBack,
     goForward,
     setHistory,
@@ -86,8 +87,6 @@ const useGame = (
     initialHistory,
   });
 
-  const [lastMove, setLastMove] = useState<PawnPos | null>(null);
-
   const [interactive, setInteractive] = useState<boolean>(true);
   const [reversed, setReversed] = useState<boolean>(false);
 
@@ -100,15 +99,9 @@ const useGame = (
     if (activeMove != history.length) return;
 
     if (turnRef.current == 0) {
-      setWhitePawnPos((p) => {
-        setLastMove(p);
-        return pos;
-      });
+      setWhitePawnPos(pos);
     } else {
-      setBlackPawnPos((p) => {
-        setLastMove(p);
-        return pos;
-      });
+      setBlackPawnPos(pos);
     }
 
     if (pawns[turnRef.current].end == pos.x) {
@@ -158,7 +151,6 @@ const useGame = (
 
     setTurn(turnRef.current == 0 ? 1 : 0);
 
-    setLastMove(null);
     moveCallbackHistory(pos, wall);
   };
 
@@ -185,7 +177,6 @@ const useGame = (
     setInteractive(true);
     setHistory([]);
     setActiveMove(0);
-    setLastMove(null);
   };
 
   useEffect(() => {
@@ -206,7 +197,7 @@ const useGame = (
       }
     }
 
-    if (activeMove != history.length) setLastMove(null);
+    // if (activeMove != history.length) setLastMove(null);
   }, [activeMove]);
 
   const reverseBoard = () => setReversed((r) => !r);

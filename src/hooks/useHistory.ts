@@ -33,6 +33,8 @@ export const useHistory = ({
     _setHistory(data);
   };
 
+  const [lastMove, setLastMove] = useState<PawnPos[]>([]);
+
   const goBack = (i: number) => {
     if (activeMoveRef.current == 0) return;
     if (i >= activeMoveRef.current) return;
@@ -144,10 +146,54 @@ export const useHistory = ({
     if (wPos) setWhitePawnPos(wPos);
   };
 
+  const whitePawnMoveHistory = useRef<PawnPos[]>([WHITE_START] as const);
+  const blackPawnMoveHistory = useRef<PawnPos[]>([BLACK_START] as const);
+
   const moveCallbackHistory = (move: PawnPos, wall?: Wall) => {
     setHistory([...historyRef.current, moveToString(move, wall)]);
+
+    if (activeMoveRef.current % 2 == 0) {
+      whitePawnMoveHistory.current.push(
+        wall
+          ? whitePawnMoveHistory.current[
+              whitePawnMoveHistory.current.length - 1
+            ]
+          : move,
+      );
+    } else {
+      blackPawnMoveHistory.current.push(
+        wall
+          ? blackPawnMoveHistory.current[
+              blackPawnMoveHistory.current.length - 1
+            ]
+          : move,
+      );
+    }
+
     setActiveMove(activeMoveRef.current + 1);
   };
+
+  useEffect(() => {
+    if (activeMove == 0) return setLastMove([]);
+    if (
+      historyRef.current[activeMove - 1][2] == "h" ||
+      historyRef.current[activeMove - 1][2] == "v"
+    )
+      return setLastMove([]);
+
+    let a = Math.floor(activeMove / 2);
+    if (activeMove % 2 == 0) {
+      setLastMove([
+        blackPawnMoveHistory.current[a - 1],
+        blackPawnMoveHistory.current[a],
+      ]);
+    } else {
+      setLastMove([
+        whitePawnMoveHistory.current[a],
+        whitePawnMoveHistory.current[a + 1],
+      ]);
+    }
+  }, [activeMove]);
 
   let keydown = false;
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -176,6 +222,7 @@ export const useHistory = ({
   return {
     history,
     activeMove,
+    lastMove,
     setActiveMove,
     setHistory,
     moveCallbackHistory,
