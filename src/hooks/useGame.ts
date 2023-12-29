@@ -91,8 +91,20 @@ const useGame = (
   const [reversed, setReversed] = useState<boolean>(false);
 
   const pawns: Pawn[] = [
-    { pos: whitePawnPos, name: "whitePawn", end: 8, color: "bg-white" },
-    { pos: blackPawnPos, name: "blackPawn", end: 0, color: "bg-black" },
+    {
+      pos: whitePawnPos,
+      name: "whitePawn",
+      end: 8,
+      color: "bg-white",
+      isPlaying: turn == 0 && activeMove == history.length,
+    },
+    {
+      pos: blackPawnPos,
+      name: "blackPawn",
+      end: 0,
+      color: "bg-black",
+      isPlaying: turn == 1 && activeMove == history.length,
+    },
   ];
 
   const movePawn = (pos: PawnPos) => {

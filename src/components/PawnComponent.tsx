@@ -2,9 +2,9 @@ import { Pawn } from "@/components/Board";
 
 const PawnComponent = ({ pawn }: { pawn: Pawn }) => {
   let color = pawn.color;
-  if (pawn.name == "ghostPawn") {
-    color += " hover:bg-yellow-500";
-  }
+  if (pawn.name == "ghostPawn") color += " hover:bg-yellow-500";
+
+  if (pawn.isPlaying) color += " ring ring-yellow-500";
 
   return (
     <div

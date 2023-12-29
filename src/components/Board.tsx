@@ -15,6 +15,7 @@ export interface Pawn {
   name: string;
   end?: number;
   color: string;
+  isPlaying: boolean;
 }
 
 export interface PawnPos {
