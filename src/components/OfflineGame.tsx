@@ -12,7 +12,6 @@ import { UserData } from "@/app/game/[gameId]/page";
 export default function OfflineGame({
   blackPlayerData,
   whitePlayerData,
-  wallsLeft,
   initialHistory,
   initialTurn,
   winner,
@@ -20,13 +19,12 @@ export default function OfflineGame({
 }: {
   blackPlayerData: UserData;
   whitePlayerData: UserData;
-  wallsLeft?: { white: number; black: number };
   initialHistory?: string[];
   initialTurn?: number;
   winner?: number;
   winningReason?: string;
 }) {
-  const game = useGame(null, wallsLeft, initialHistory, initialTurn);
+  const game = useGame({ player: null, initialHistory, initialTurn });
 
   useEffect(() => {
     if (winner == 0 || winner == 1) {

@@ -143,7 +143,6 @@ export default function Game({ params }: { params: { gameId: number } }) {
 
   return (
     <OfflineGame
-      wallsLeft={gameData.wallsLeft}
       initialHistory={gameData.history}
       initialTurn={gameData.turn}
       whitePlayerData={whiteUserData}

@@ -21,13 +21,12 @@ export default function OnlineGame({
   whitePlayerData: UserData;
   blackPlayerData: UserData;
 }) {
-  const game = useGame(
-    gameData.player,
-    gameData.wallsLeft,
-    gameData.history,
-    gameData.turn,
-    false,
-  );
+  const game = useGame({
+    player: gameData.player,
+    initialHistory: gameData.history,
+    initialTurn: gameData.turn,
+    defineWinner: false,
+  });
   const whiteTimer = useTimer({
     initialSeconds: gameData.whiteTimeLeft * 10,
     autoStart: gameData.history.length > 0 && gameData.turn == 0,

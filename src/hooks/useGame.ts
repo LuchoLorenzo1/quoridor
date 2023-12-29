@@ -41,13 +41,17 @@ export type GameController = {
   };
 };
 
-const useGame = (
-  player: number | null,
-  wLeft?: { white: number; black: number },
-  initialHistory?: string[],
-  initialTurn?: number,
-  defineWinner: boolean = true,
-): GameController => {
+const useGame = ({
+  player,
+  initialHistory,
+  initialTurn,
+  defineWinner = true,
+}: {
+  player: number | null;
+  initialHistory?: string[];
+  initialTurn?: number;
+  defineWinner?: boolean;
+}): GameController => {
   const [turn, _setTurn] = useState<number>(initialTurn != 1 ? 0 : 1);
   const turnRef = useRef(turn);
   const setTurn = (t: number) => {
@@ -58,12 +62,8 @@ const useGame = (
   const [whitePawnPos, setWhitePawnPos] = useState<PawnPos>(WHITE_START);
   const [blackPawnPos, setBlackPawnPos] = useState<PawnPos>(BLACK_START);
 
-  const [whiteWallsLeft, setWhiteWallsLeft] = useState<number>(
-    wLeft?.white || 10,
-  );
-  const [blackWallsLeft, setBlackWallsLeft] = useState<number>(
-    wLeft?.black || 10,
-  );
+  const [whiteWallsLeft, setWhiteWallsLeft] = useState<number>(10);
+  const [blackWallsLeft, setBlackWallsLeft] = useState<number>(10);
   const wallsLeft = useRef({ white: whiteWallsLeft, black: blackWallsLeft });
 
   const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));

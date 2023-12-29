@@ -18,7 +18,7 @@ export const useHistory = ({
   setWalls: Dispatch<SetStateAction<Wall[][]>>;
   initialHistory?: string[];
 }) => {
-  const [history, _setHistory] = useState<string[]>(initialHistory);
+  const [history, _setHistory] = useState<string[]>([]);
   const [activeMove, _setActiveMove] = useState<number>(0);
 
   const activeMoveRef = useRef(0);
@@ -34,6 +34,20 @@ export const useHistory = ({
   };
 
   const [lastMove, setLastMove] = useState<PawnPos[]>([]);
+
+  const whitePawnMoveHistory = useRef<PawnPos[]>([WHITE_START] as const);
+  const blackPawnMoveHistory = useRef<PawnPos[]>([BLACK_START] as const);
+
+  useEffect(() => {
+    initialHistory.forEach((move: string) => {
+      let m = stringToMove(move);
+      moveCallbackHistory(m.pos, m.wall);
+    });
+
+    _goForward(0, initialHistory.length);
+    addEventListener("keydown", handleKeyDown);
+    return () => removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const goBack = (i: number) => {
     if (activeMoveRef.current == 0) return;
@@ -95,15 +109,10 @@ export const useHistory = ({
     });
   };
 
-  const goForward = (i: number) => {
-    if (i == Infinity) i = historyRef.current.length;
-    if (activeMoveRef.current == historyRef.current.length) return;
-    if (i <= activeMoveRef.current) return;
-
+  const _goForward = (start: number, i: number) => {
     let wPos;
     let bPos;
-
-    for (let a = activeMoveRef.current; a < i; a++) {
+    for (let a = start; a < i; a++) {
       let move = stringToMove(historyRef.current[a]);
 
       if (move.wall) {
@@ -146,8 +155,12 @@ export const useHistory = ({
     if (wPos) setWhitePawnPos(wPos);
   };
 
-  const whitePawnMoveHistory = useRef<PawnPos[]>([WHITE_START] as const);
-  const blackPawnMoveHistory = useRef<PawnPos[]>([BLACK_START] as const);
+  const goForward = (i: number) => {
+    if (i == Infinity) i = historyRef.current.length;
+    if (activeMoveRef.current == historyRef.current.length) return;
+    if (i <= activeMoveRef.current) return;
+    _goForward(activeMoveRef.current, i);
+  };
 
   const moveCallbackHistory = (move: PawnPos, wall?: Wall) => {
     setHistory([...historyRef.current, moveToString(move, wall)]);
@@ -212,12 +225,6 @@ export const useHistory = ({
       goBack(0);
     }
   };
-
-  useEffect(() => {
-    goForward(Infinity);
-    addEventListener("keydown", handleKeyDown);
-    return () => removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   return {
     history,
