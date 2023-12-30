@@ -204,7 +204,7 @@ export const useHistory = ({
 
   let keydown = false;
   const handleKeyDown = (e: KeyboardEvent) => {
-    e.preventDefault();
+    if (e.key.includes("Arrow")) e.preventDefault();
     if (keydown) return;
     keydown = true;
     setTimeout(() => (keydown = false), 50);

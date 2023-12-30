@@ -2,7 +2,13 @@
 import { GameData, UserData } from "@/app/game/[gameId]/page";
 import useGame from "@/hooks/useGame";
 import useTimer from "@/hooks/useTimer";
-import { useCallback, useEffect, useState } from "react";
+import {
+  MouseEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Socket } from "socket.io-client";
 import Board, { PawnPos, Wall } from "./Board";
 import { moveToString, stringToMove } from "@/utils";
@@ -179,7 +185,7 @@ export default function OnlineGame({
             wallsLeft={game.gameControl.whiteWallsLeft}
           />
         </div>
-        <div className="col-span-full col-start-3 col-end-9 lg:col-span-2 xl:col-span-3 flex flex-col gap-5 w-full h-full items-center">
+        <div className="col-span-full col-start-3 col-end-9 lg:col-span-2 xl:col-span-3 w-full flex flex-col items-center gap-2">
           <GameMenu historyControl={game.historyControl} />
           <button
             className="w-3/4 rounded px-4 py-2 bg-blue-400 hover:bg-blue-500"
@@ -207,8 +213,109 @@ export default function OnlineGame({
               ? `aborting in ${abortTimer.totalSeconds}...`
               : ""}
           </h1>
+          <Chat
+            socket={gameSocket}
+            whitePlayerData={whitePlayerData}
+            blackPlayerData={blackPlayerData}
+            player={gameData.player || 0}
+          />
         </div>
       </div>
     </>
   );
 }
+
+interface Message {
+  text: String;
+  player: number;
+}
+
+const Chat = ({
+  socket,
+  whitePlayerData,
+  blackPlayerData,
+  player,
+}: {
+  socket: Socket;
+  whitePlayerData: UserData;
+  blackPlayerData: UserData;
+  player: number;
+}) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [text, setText] = useState<string>("");
+  const messagesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    socket.on("chatMessage", (t: string) => {
+      setMessages((m) => [
+        ...m,
+        { text: t.slice(2), player: player == 0 ? 1 : 0 },
+      ]);
+    });
+
+    socket.on("chat", (m: String[]) => {
+      const ms: Message[] = [];
+      m.forEach((message) => {
+        const player = +message[0];
+        const text = message.slice(2);
+        ms.push({ player, text });
+      });
+      setMessages(ms);
+    });
+
+    socket.emit("getChat");
+  }, []);
+
+  const sendMessage = () => {
+    if (!text) return;
+    setMessages((m) => [...m, { text, player }]);
+    socket.emit("chatMessage", text);
+    setText("");
+  };
+
+  useEffect(() => {
+    messagesRef.current?.scrollTo({
+      behavior: "smooth",
+      top: messagesRef.current.scrollHeight + 50,
+    });
+  }, [messages]);
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      <div
+        ref={messagesRef}
+        className="h-64 w-full bg-gray-300 flex-grow-0 overflow-y-scroll px-3 pb-1 no-scrollbar"
+      >
+        {messages.map((m, i) => {
+          return (
+            <h3 key={i} className={`pr-2  text-sm`}>
+              <span className="font-bold">
+                {m.player == 0 ? whitePlayerData.name : blackPlayerData.name}:
+              </span>{" "}
+              {m.text}
+            </h3>
+          );
+        })}
+      </div>
+      <div className="h-[10%] w-full flex flex-col gap-2">
+        <div className="flex">
+          <input
+            className="w-3/4"
+            type="text"
+            onChange={(e) => setText(e.target.value)}
+            value={text}
+            onKeyDown={(event) => {
+              if (event.key == "Enter") sendMessage();
+            }}
+          />
+          <button
+            onClick={sendMessage}
+            className="w-1/4 bg-blue-400 hover:bg-blue-500"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

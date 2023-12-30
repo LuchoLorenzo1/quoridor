@@ -31,10 +31,10 @@ const GameMenu = ({
   if (!history) return;
 
   return (
-    <div className="flex flex-col max-h-[50%] h-1/2 w-full">
+    <div className="flex flex-col w-full">
       <div
         ref={refScroll}
-        className="w-full bg-stone-600 no-scrollbar overflow-y-scroll h-full p-2 text-white mb-2"
+        className="h-64 bg-stone-600 no-scrollbar overflow-y-scroll p-2 text-white mb-2"
       >
         {pairs.map((m, i) => {
           return (
@@ -58,11 +58,13 @@ const GameMenu = ({
           );
         })}
       </div>
-      <ControlToolBar
-        goForward={goForward}
-        goBack={goBack}
-        activeMove={activeMove}
-      />
+      <div className="min-h-[10%] h-[10%]">
+        <ControlToolBar
+          goForward={goForward}
+          goBack={goBack}
+          activeMove={activeMove}
+        />
+      </div>
     </div>
   );
 };

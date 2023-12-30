@@ -27,7 +27,7 @@ const GameUserData = ({
         <div className="flex flex-col">
           <h1 className="font-bold">{playerData.name}</h1>
           <div className="flex items-center gap-2">
-            {Array(wallsLeft)
+            {Array(wallsLeft <= 0 ? 0 : wallsLeft)
               .fill(0)
               .map((_, i) => (
                 <span
