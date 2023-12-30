@@ -115,26 +115,20 @@ export const useHistory = ({
     for (let a = start; a < i; a++) {
       let move = stringToMove(historyRef.current[a]);
 
+      let t = a % 2;
       if (move.wall) {
+        let { wall, pos } = move;
         setWalls((w) => {
-          if (move.wall?.col == 1) {
-            w[move.pos.y][move.pos.x] = {
-              ...w[move.pos.y][move.pos.x],
-              col: 1,
-            };
-            w[move.pos.y][move.pos.x + 1] = {
-              ...w[move.pos.y][move.pos.x + 1],
-              col: 2,
-            };
+          if (wall.col == 1) {
+            w[pos.y][pos.x].col = 1;
+            w[pos.y][pos.x + 1].col = 2;
+            w[pos.y][pos.x].verticallWallPlayer = t;
+            w[pos.y][pos.x + 1].verticallWallPlayer = t;
           } else {
-            w[move.pos.y][move.pos.x] = {
-              ...w[move.pos.y][move.pos.x],
-              row: 1,
-            };
-            w[move.pos.y + 1][move.pos.x] = {
-              ...w[move.pos.y + 1][move.pos.x],
-              row: 2,
-            };
+            w[pos.y][pos.x].row = 1;
+            w[pos.y + 1][pos.x].row = 2;
+            w[pos.y][pos.x].horizontalWallPlayer = t;
+            w[pos.y + 1][pos.x].horizontalWallPlayer = t;
           }
           return w;
         });
