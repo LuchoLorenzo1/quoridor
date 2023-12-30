@@ -7,14 +7,12 @@ export const useHistory = ({
   setWhitePawnPos,
   setBlackPawnPos,
   setWalls,
-  setWhiteWallsLeft,
-  setBlackWallsLeft,
+  incrementWallsLeft,
   initialHistory = [],
 }: {
   setWhitePawnPos: Dispatch<SetStateAction<PawnPos>>;
   setBlackPawnPos: Dispatch<SetStateAction<PawnPos>>;
-  setWhiteWallsLeft: Dispatch<SetStateAction<number>>;
-  setBlackWallsLeft: Dispatch<SetStateAction<number>>;
+  incrementWallsLeft: (w: number, color: "white" | "black") => void;
   setWalls: Dispatch<SetStateAction<Wall[][]>>;
   initialHistory?: string[];
 }) => {
@@ -62,9 +60,9 @@ export const useHistory = ({
       if (move.wall != undefined) {
         undoWallMove(move.pos, move.wall);
         if (a % 2 == 0) {
-          setBlackWallsLeft((w) => w + 1);
+		  incrementWallsLeft(1, "black")
         } else {
-          setWhiteWallsLeft((w) => w + 1);
+		  incrementWallsLeft(1, "white")
         }
         continue;
       }
@@ -133,9 +131,9 @@ export const useHistory = ({
           return w;
         });
         if (a % 2 == 0) {
-          setWhiteWallsLeft((w) => w - 1);
+		  incrementWallsLeft(-1, "white")
         } else {
-          setBlackWallsLeft((w) => w - 1);
+		  incrementWallsLeft(-1, "black")
         }
       } else if (a % 2 == 0) {
         wPos = move.pos;

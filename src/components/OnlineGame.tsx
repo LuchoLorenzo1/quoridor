@@ -52,8 +52,10 @@ export default function OnlineGame({
   const moveCallback = useCallback((pos: PawnPos, wall?: Wall) => {
     if (game.historyControl.activeMove == 0) abortTimer.restart(10, true);
 
-    game.gameControl.moveCallback(pos, wall);
-    gameSocket.emit("move", moveToString(pos, wall), (timeLeft: number) => {
+    const res = game.gameControl.moveCallback(pos, wall)
+	if (!res) return
+
+	gameSocket.emit("move", moveToString(pos, wall), (timeLeft: number) => {
       if (gameData.player == 0) {
         whiteTimer.restart(timeLeft * 10, false);
         blackTimer.resume();
@@ -147,6 +149,9 @@ export default function OnlineGame({
     blackTimer.pause();
     abortTimer.pause();
   };
+
+  console.log(game.gameControl.whiteWallsLeft)
+  console.log(game.gameControl.blackWallsLeft)
 
   return (
     <>

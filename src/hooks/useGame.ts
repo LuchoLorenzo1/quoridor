@@ -13,7 +13,7 @@ type FinishedGameState = {
 
 export type GameController = {
   gameControl: {
-    moveCallback: (pos: PawnPos, wall?: Wall) => void;
+    moveCallback: (pos: PawnPos, wall?: Wall) => boolean;
     reverseBoard: () => void;
     restart: () => void;
     setWinner: Dispatch<SetStateAction<FinishedGameState | null>>;
@@ -66,6 +66,16 @@ const useGame = ({
   const [blackWallsLeft, setBlackWallsLeft] = useState<number>(10);
   const wallsLeft = useRef({ white: whiteWallsLeft, black: blackWallsLeft });
 
+  const incrementWallsLeft = (w: number, color: "white" | "black") => {
+	  if (color == "white")  {
+		setWhiteWallsLeft(wallsLeft.current.white + w)
+		wallsLeft.current.white += w
+	  } else {
+		setBlackWallsLeft(wallsLeft.current.black + w)
+		wallsLeft.current.black += w
+	  }
+  }
+
   const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
   const [winner, setWinner] = useState<FinishedGameState | null>(null);
 
@@ -81,8 +91,7 @@ const useGame = ({
   } = useHistory({
     setWhitePawnPos,
     setBlackPawnPos,
-    setWhiteWallsLeft,
-    setBlackWallsLeft,
+	incrementWallsLeft,
     setWalls,
     initialHistory,
   });
@@ -108,7 +117,7 @@ const useGame = ({
   ];
 
   const movePawn = (pos: PawnPos) => {
-    if (activeMove != history.length) return;
+    if (activeMove != history.length) return false;
 
     if (turnRef.current == 0) {
       setWhitePawnPos(pos);
@@ -129,12 +138,13 @@ const useGame = ({
     setInteractive(player == null || player == nextTurn);
     moveCallbackHistory(pos);
     setTurn(nextTurn);
+	return true
   };
 
-  const moveWall = (pos: PawnPos, wall: Wall) => {
-    if (activeMove != history.length) return;
-    if (turnRef.current == 0 && wallsLeft.current.white <= 0) return;
-    if (turnRef.current == 1 && wallsLeft.current.black <= 0) return;
+  const moveWall = (pos: PawnPos, wall: Wall): boolean => {
+    if (activeMove != history.length) return false;
+    if (turnRef.current == 0 && wallsLeft.current.white <= 0) return false;
+    if (turnRef.current == 1 && wallsLeft.current.black <= 0) return false;
     let t = turnRef.current;
     setWalls((w) => {
       if (wall.col == 1) {
@@ -168,14 +178,13 @@ const useGame = ({
     setTurn(turnRef.current == 0 ? 1 : 0);
 
     moveCallbackHistory(pos, wall);
+	return true
   };
 
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
-    if (wall) {
-      moveWall(pos, wall);
-    } else {
-      movePawn(pos);
-    }
+    if (wall)
+      return moveWall(pos, wall);
+	return movePawn(pos);
   };
 
   const restart = () => {
