@@ -26,6 +26,8 @@ export interface PawnPos {
 export interface Wall {
   row: number;
   col: number;
+  verticallWallPlayer?: number;
+  horizontalWallPlayer?: number;
 }
 
 export interface CellState {
@@ -34,6 +36,8 @@ export interface CellState {
   row: number;
   col: number;
   highlightCell: string;
+  verticallWallPlayer?: number;
+  horizontalWallPlayer?: number;
 }
 
 const WALLS_IDS = ["horizontal-wall", "vertical-wall", "intersection"];
@@ -193,6 +197,7 @@ const Board = ({
       pos: { x: pawn.x, y: pawn.y },
       name: "ghostPawn",
       color: "bg-neutral-400",
+      isPlaying: false,
     };
   }
 

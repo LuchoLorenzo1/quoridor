@@ -30,7 +30,12 @@ const GameUserData = ({
             {Array(wallsLeft)
               .fill(0)
               .map((_, i) => (
-                <span key={i} className="bg-yellow-400 w-2 h-5" />
+                <span
+                  key={i}
+                  className={`${
+                    color == "white" ? "bg-yellow-400" : "bg-yellow-600"
+                  }  w-2 h-5`}
+                />
               ))}
             <h3 className="text-xs font-thin">x({wallsLeft})</h3>
           </div>

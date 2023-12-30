@@ -99,11 +99,11 @@ export const useHistory = ({
   const undoWallMove = (pos: PawnPos, wall: Wall) => {
     setWalls((w) => {
       if (wall?.col == 1) {
-        w[pos.y][pos.x] = { col: 0, row: w[pos.y][pos.x].row };
-        w[pos.y][pos.x + 1] = { col: 0, row: w[pos.y][pos.x + 1].row };
+        w[pos.y][pos.x] = { ...w[pos.y][pos.x], col: 0 };
+        w[pos.y][pos.x + 1] = { ...w[pos.y][pos.x + 1], col: 0 };
       } else if (wall?.row == 1) {
-        w[pos.y][pos.x] = { row: 0, col: w[pos.y][pos.x].col };
-        w[pos.y + 1][pos.x] = { row: 0, col: w[pos.y + 1][pos.x].col };
+        w[pos.y][pos.x] = { ...w[pos.y][pos.x], row: 0 };
+        w[pos.y + 1][pos.x] = { ...w[pos.y + 1][pos.x], row: 0 };
       }
       return w;
     });
@@ -119,21 +119,21 @@ export const useHistory = ({
         setWalls((w) => {
           if (move.wall?.col == 1) {
             w[move.pos.y][move.pos.x] = {
+              ...w[move.pos.y][move.pos.x],
               col: 1,
-              row: w[move.pos.y][move.pos.x].row,
             };
             w[move.pos.y][move.pos.x + 1] = {
+              ...w[move.pos.y][move.pos.x + 1],
               col: 2,
-              row: w[move.pos.y][move.pos.x + 1].row,
             };
           } else {
             w[move.pos.y][move.pos.x] = {
+              ...w[move.pos.y][move.pos.x],
               row: 1,
-              col: w[move.pos.y][move.pos.x].col,
             };
             w[move.pos.y + 1][move.pos.x] = {
+              ...w[move.pos.y + 1][move.pos.x],
               row: 2,
-              col: w[move.pos.y + 1][move.pos.x].col,
             };
           }
           return w;

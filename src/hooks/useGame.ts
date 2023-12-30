@@ -135,14 +135,18 @@ const useGame = ({
     if (activeMove != history.length) return;
     if (turnRef.current == 0 && wallsLeft.current.white <= 0) return;
     if (turnRef.current == 1 && wallsLeft.current.black <= 0) return;
-
+    let t = turnRef.current;
     setWalls((w) => {
       if (wall.col == 1) {
         w[pos.y][pos.x].col = 1;
         w[pos.y][pos.x + 1].col = 2;
+        w[pos.y][pos.x].verticallWallPlayer = t;
+        w[pos.y][pos.x + 1].verticallWallPlayer = t;
       } else {
         w[pos.y][pos.x].row = 1;
         w[pos.y + 1][pos.x].row = 2;
+        w[pos.y][pos.x].horizontalWallPlayer = t;
+        w[pos.y + 1][pos.x].horizontalWallPlayer = t;
       }
       return w;
     });

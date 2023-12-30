@@ -12,8 +12,19 @@ const Wall = ({
   horizontal?: boolean;
 }) => {
   let color = "bg-white-500";
-  if (horizontal && state.row != 0) color = "bg-yellow-500";
-  if (!horizontal && state.col != 0) color = "bg-yellow-500";
+  if (horizontal && state.row != 0) {
+    if (state.horizontalWallPlayer == 1) {
+      color = "bg-yellow-600";
+    } else {
+      color = "bg-yellow-400";
+    }
+  } else if (!horizontal && state.col != 0) {
+    if (state.verticallWallPlayer == 1) {
+      color = "bg-yellow-600";
+    } else {
+      color = "bg-yellow-400";
+    }
+  }
 
   if (state.hoveredWall) {
     if (horizontal && state.hoveredWall.toLowerCase() == "h") {
