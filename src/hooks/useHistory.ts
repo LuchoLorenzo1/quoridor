@@ -60,9 +60,9 @@ export const useHistory = ({
       if (move.wall != undefined) {
         undoWallMove(move.pos, move.wall);
         if (a % 2 == 0) {
-		  incrementWallsLeft(1, "black")
+          incrementWallsLeft(1, "black");
         } else {
-		  incrementWallsLeft(1, "white")
+          incrementWallsLeft(1, "white");
         }
         continue;
       }
@@ -131,9 +131,9 @@ export const useHistory = ({
           return w;
         });
         if (a % 2 == 0) {
-		  incrementWallsLeft(-1, "white")
+          incrementWallsLeft(-1, "white");
         } else {
-		  incrementWallsLeft(-1, "black")
+          incrementWallsLeft(-1, "black");
         }
       } else if (a % 2 == 0) {
         wPos = move.pos;

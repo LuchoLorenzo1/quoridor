@@ -67,14 +67,14 @@ const useGame = ({
   const wallsLeft = useRef({ white: whiteWallsLeft, black: blackWallsLeft });
 
   const incrementWallsLeft = (w: number, color: "white" | "black") => {
-	  if (color == "white")  {
-		setWhiteWallsLeft(wallsLeft.current.white + w)
-		wallsLeft.current.white += w
-	  } else {
-		setBlackWallsLeft(wallsLeft.current.black + w)
-		wallsLeft.current.black += w
-	  }
-  }
+    if (color == "white") {
+      setWhiteWallsLeft(wallsLeft.current.white + w);
+      wallsLeft.current.white += w;
+    } else {
+      setBlackWallsLeft(wallsLeft.current.black + w);
+      wallsLeft.current.black += w;
+    }
+  };
 
   const [walls, setWalls] = useState<Wall[][]>(matrix(9, 9));
   const [winner, setWinner] = useState<FinishedGameState | null>(null);
@@ -91,7 +91,7 @@ const useGame = ({
   } = useHistory({
     setWhitePawnPos,
     setBlackPawnPos,
-	incrementWallsLeft,
+    incrementWallsLeft,
     setWalls,
     initialHistory,
   });
@@ -138,7 +138,7 @@ const useGame = ({
     setInteractive(player == null || player == nextTurn);
     moveCallbackHistory(pos);
     setTurn(nextTurn);
-	return true
+    return true;
   };
 
   const moveWall = (pos: PawnPos, wall: Wall): boolean => {
@@ -178,13 +178,12 @@ const useGame = ({
     setTurn(turnRef.current == 0 ? 1 : 0);
 
     moveCallbackHistory(pos, wall);
-	return true
+    return true;
   };
 
   const moveCallback = (pos: PawnPos, wall?: Wall) => {
-    if (wall)
-      return moveWall(pos, wall);
-	return movePawn(pos);
+    if (wall) return moveWall(pos, wall);
+    return movePawn(pos);
   };
 
   const restart = () => {

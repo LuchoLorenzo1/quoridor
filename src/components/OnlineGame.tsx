@@ -52,10 +52,10 @@ export default function OnlineGame({
   const moveCallback = useCallback((pos: PawnPos, wall?: Wall) => {
     if (game.historyControl.activeMove == 0) abortTimer.restart(10, true);
 
-    const res = game.gameControl.moveCallback(pos, wall)
-	if (!res) return
+    const res = game.gameControl.moveCallback(pos, wall);
+    if (!res) return;
 
-	gameSocket.emit("move", moveToString(pos, wall), (timeLeft: number) => {
+    gameSocket.emit("move", moveToString(pos, wall), (timeLeft: number) => {
       if (gameData.player == 0) {
         whiteTimer.restart(timeLeft * 10, false);
         blackTimer.resume();
@@ -143,6 +143,7 @@ export default function OnlineGame({
   }, [checkLowTime]);
 
   const resign = () => {
+    if (game.gameControl.winner != null) return;
     gameSocket.emit("resign");
     new Audio("/Notify.mp3").play();
     whiteTimer.pause();
@@ -150,8 +151,8 @@ export default function OnlineGame({
     abortTimer.pause();
   };
 
-  console.log(game.gameControl.whiteWallsLeft)
-  console.log(game.gameControl.blackWallsLeft)
+  console.log(game.gameControl.whiteWallsLeft);
+  console.log(game.gameControl.blackWallsLeft);
 
   return (
     <>

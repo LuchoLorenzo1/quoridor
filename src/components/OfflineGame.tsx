@@ -8,6 +8,7 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import GameUserData from "./GameUserData";
 import { UserData } from "@/app/game/[gameId]/page";
+import GameOverModal from "./GameOverModal";
 
 export default function OfflineGame({
   blackPlayerData,
@@ -36,13 +37,21 @@ export default function OfflineGame({
 
   return (
     <>
-      {game.gameControl.winner != null && (
-        <GameOverModalOffline
-          winner={game.gameControl.winner.winner}
-          restart={game.gameControl.restart}
-          text={game.gameControl.winner.reason}
-        />
-      )}
+      {game.gameControl.winner != null &&
+        (whitePlayerData.id == "offline" || blackPlayerData.id == "offline" ? (
+          <GameOverModalOffline
+            winner={game.gameControl.winner.winner}
+            restart={game.gameControl.restart}
+            text={game.gameControl.winner.reason}
+          />
+        ) : (
+          <GameOverModal
+            title={
+              game.gameControl.winner.winner == 0 ? "white won" : "black won"
+            }
+            text={game.gameControl.winner.reason}
+          />
+        ))}
       <div className="grid grid-cols-10 gap-10 place-items-center w-full max-w-7xl h-full">
         <div
           className={`flex ${

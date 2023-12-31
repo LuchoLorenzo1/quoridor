@@ -5,12 +5,12 @@ export default function Offline() {
   return (
     <OfflineGame
       whitePlayerData={{
-        id: "",
+        id: "offline",
         image: "/default_profile_picture.png",
         name: "white",
       }}
       blackPlayerData={{
-        id: "",
+        id: "offline",
         image: "/default_profile_picture.png",
         name: "black",
       }}
