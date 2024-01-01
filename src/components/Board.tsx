@@ -232,7 +232,7 @@ const Board = ({
       onClick={(e) => handleClick(e)}
       onContextMenu={(e) => handleRightClick(e)}
       onMouseOver={(e) => handleHover(e)}
-      onMouseOut={() => setHoveredWall(null)}
+      onMouseOut={(e) => setHoveredWall(null)}
       onDragEnter={handleDragEnter}
       onDragEnd={handleDragEnd}
       onDragStart={handleDragStart}

@@ -154,6 +154,12 @@ export default function OnlineGame({
     abortTimer.pause();
   };
 
+  const abort = () => gameSocket.emit("abort");
+
+  const abortable =
+    (gameData.player == 0 && game.historyControl.history.length == 0) ||
+    (gameData.player == 1 && game.historyControl.history.length <= 1);
+
   return (
     <>
       {game.gameControl.winner != null && (
@@ -172,7 +178,7 @@ export default function OnlineGame({
         <div
           className={`flex ${
             game.boardSettings.reversed ? "flex-col-reverse" : "flex-col"
-          } max-w-fit justify-center items-center w-full gap-3 col-span-10 lg:col-span-7 xl:col-span-7`}
+          } max-w-fit justify-center items-center w-full gap-3 col-span-10 lg:col-span-7`}
         >
           <GameUserData
             playerData={blackPlayerData}
@@ -197,12 +203,21 @@ export default function OnlineGame({
             className="border-b-2 border-stone-800"
           />
           <div className="flex flex-start">
-            <button
-              className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-red-500 active:focus:bg-red-700 outline-none"
-              onClick={resign}
-            >
-              <FaFlag className="text-xs" /> resign
-            </button>
+            {abortable ? (
+              <button
+                className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-red-500 active:focus:bg-red-700 outline-none"
+                onClick={abort}
+              >
+                <FaFlag className="text-xs" /> abort
+              </button>
+            ) : (
+              <button
+                className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-red-500 active:focus:bg-red-700 outline-none"
+                onClick={resign}
+              >
+                <FaFlag className="text-xs" /> resign
+              </button>
+            )}
             <ControlToolBar
               goForward={game.historyControl.goForward}
               goBack={game.historyControl.goBack}

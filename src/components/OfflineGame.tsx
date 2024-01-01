@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import GameUserData from "./GameUserData";
 import { UserData } from "@/app/game/[gameId]/page";
 import GameOverModal from "./GameOverModal";
+import ControlToolBar from "./GameToolBar";
 
 export default function OfflineGame({
   blackPlayerData,
@@ -56,7 +57,7 @@ export default function OfflineGame({
         <div
           className={`flex ${
             game.boardSettings.reversed ? "flex-col-reverse" : "flex-col"
-          } max-w-fit justify-center items-center w-full gap-3 col-span-10 lg:col-span-8 xl:col-span-7`}
+          } max-w-fit justify-center items-center w-full gap-3 col-span-10 lg:col-span-7`}
         >
           <GameUserData
             playerData={blackPlayerData}
@@ -74,20 +75,28 @@ export default function OfflineGame({
             color="white"
           />
         </div>
-        <div className="col-span-full col-start-3 col-end-9 lg:col-span-2 xl:col-span-3 flex flex-col gap-5 w-full h-full items-center">
-          <GameMenu historyControl={game.historyControl} />
-          <button
-            className="w-3/4 px-4 py-2 bg-blue-400 hover:bg-blue-500"
-            onClick={game.gameControl.reverseBoard}
-          >
-            Flip Board
-          </button>
-          <button
-            className="w-3/4 px-4 py-2 bg-blue-400 hover:bg-blue-500"
-            onClick={game.gameControl.restart}
-          >
-            Restart
-          </button>
+        <div className="max-w-xl col-span-full lg:col-span-3 xl:col-span-3 w-full flex flex-col bg-stone-600 border-2 border-stone-800">
+          <GameMenu
+            historyControl={game.historyControl}
+            className="border-b-2 border-stone-800"
+          />
+          <div className="flex">
+            {whitePlayerData.id == "offline" &&
+              blackPlayerData.id == "offline" && (
+                <button
+                  className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-green-600 active:focus:bg-green-700 outline-none"
+                  onClick={game.gameControl.restart}
+                >
+                  restart
+                </button>
+              )}
+            <ControlToolBar
+              goForward={game.historyControl.goForward}
+              goBack={game.historyControl.goBack}
+              activeMove={game.historyControl.activeMove}
+              reverseBoard={game.gameControl.reverseBoard}
+            />
+          </div>
         </div>
       </div>
     </>
