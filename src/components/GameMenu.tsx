@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
+import { twMerge } from "tailwind-merge";
 
 const GameMenu = ({
   historyControl: { history, activeMove, goBack, goForward },
+  className,
 }: {
   historyControl: {
     history: string[];
@@ -9,6 +11,7 @@ const GameMenu = ({
     goBack: (i: number) => void;
     goForward: (i: number) => void;
   };
+  className?: string;
 }) => {
   const pairs = pairElements(history);
 
@@ -26,45 +29,40 @@ const GameMenu = ({
         top: refIndex * 50,
         behavior: "smooth",
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMove]);
 
   if (!history) return;
 
   return (
-    <div className="flex flex-col w-full">
-      <div
-        ref={refScroll}
-        className="h-64 bg-stone-600 no-scrollbar overflow-y-scroll p-2 text-white mb-2"
-      >
-        {pairs.map((m, i) => {
-          return (
-            <div className="gap-2 flex items-center mb-1" key={i}>
-              <h2 className="select-none">{i + 1}.</h2>
-              <MoveButton
-                i={1 + i * 2}
-                value={m[0]}
-                activeMove={activeMove}
-                goForward={goForward}
-                goBack={goBack}
-              />
-              <MoveButton
-                i={2 + i * 2}
-                value={m[1]}
-                activeMove={activeMove}
-                goForward={goForward}
-                goBack={goBack}
-              />
-            </div>
-          );
-        })}
-      </div>
-      <div className="min-h-[10%] h-[10%]">
-        <ControlToolBar
-          goForward={goForward}
-          goBack={goBack}
-          activeMove={activeMove}
-        />
-      </div>
+    <div
+      ref={refScroll}
+      className={twMerge(
+        "w-full h-64 bg-stone-600 text-stone-200 no-scrollbar overflow-y-scroll p-2",
+        className,
+      )}
+    >
+      {pairs.map((m, i) => {
+        return (
+          <div className="gap-2 flex items-center mb-1" key={i}>
+            <h2 className="select-none text-stone-800">{i + 1}.</h2>
+            <MoveButton
+              i={1 + i * 2}
+              value={m[0]}
+              activeMove={activeMove}
+              goForward={goForward}
+              goBack={goBack}
+            />
+            <MoveButton
+              i={2 + i * 2}
+              value={m[1]}
+              activeMove={activeMove}
+              goForward={goForward}
+              goBack={goBack}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -85,51 +83,12 @@ const MoveButton = ({
   return (
     <button
       onClick={() => (i > activeMove ? goForward(i) : goBack(i))}
-      className={`select-none py-0.5 px-2 rounded-md ${
-        activeMove == i ? "text-black bg-white" : "hover:bg-slate-500"
+      className={`select-none font-bold py-0.5 px-2 rounded-md active:focus:bg-stone-800 outline-none ${
+        activeMove == i ? "text-black bg-white" : "hover:bg-stone-800"
       }`}
     >
       {value}
     </button>
-  );
-};
-
-const ControlToolBar = ({
-  goForward,
-  goBack,
-  activeMove,
-}: {
-  goForward: (i: number) => void;
-  goBack: (i: number) => void;
-  activeMove: number;
-}) => {
-  return (
-    <div className="flex justify-center gap-1">
-      <button
-        onClick={() => goBack(0)}
-        className="select-none px-3 py-1 bg-green-500 rounded-md"
-      >
-        {"<<"}
-      </button>
-      <button
-        onClick={() => goBack(activeMove - 1)}
-        className="select-none px-3 py-1 bg-green-500 rounded-md"
-      >
-        {"<"}
-      </button>
-      <button
-        onClick={() => goForward(activeMove + 1)}
-        className="select-none px-3 py-1 bg-green-500 rounded-md"
-      >
-        {">"}
-      </button>
-      <button
-        onClick={() => goForward(Infinity)}
-        className="select-none px-3 py-1 bg-green-500 rounded-md"
-      >
-        {">>"}
-      </button>
-    </div>
   );
 };
 

@@ -1,3 +1,4 @@
+"use client";
 /* eslint-disable react-hooks/exhaustive-deps */
 import { GameData, UserData } from "@/app/game/[gameId]/page";
 import useGame from "@/hooks/useGame";
@@ -10,6 +11,9 @@ import GameOverModal from "./GameOverModal";
 import GameMenu from "./GameMenu";
 import GameUserData from "./GameUserData";
 import { IoMdSend } from "react-icons/io";
+import { twMerge } from "tailwind-merge";
+import ControlToolBar from "./GameToolBar";
+import { FaFlag } from "react-icons/fa";
 
 export default function OnlineGame({
   gameSocket,
@@ -164,12 +168,11 @@ export default function OnlineGame({
         />
       )}
       {gameAborted && <GameOverModal title={"Game Aborted"} />}
-
-      <div className="grid grid-cols-10 gap-10 place-items-center w-full max-w-7xl h-full">
+      <div className="grid grid-cols-10 place-items-center w-full max-w-7xl h-full gap-5">
         <div
           className={`flex ${
             game.boardSettings.reversed ? "flex-col-reverse" : "flex-col"
-          } max-w-fit justify-center items-center w-full gap-3 col-span-10 lg:col-span-8 xl:col-span-7`}
+          } max-w-fit justify-center items-center w-full gap-3 col-span-10 lg:col-span-7 xl:col-span-7`}
         >
           <GameUserData
             playerData={blackPlayerData}
@@ -188,20 +191,25 @@ export default function OnlineGame({
             wallsLeft={game.gameControl.whiteWallsLeft}
           />
         </div>
-        <div className="col-span-full col-start-3 col-end-9 lg:col-span-2 xl:col-span-3 w-full flex flex-col items-center gap-2">
-          <GameMenu historyControl={game.historyControl} />
-          <button
-            className="w-3/4 rounded px-4 py-2 bg-blue-400 hover:bg-blue-500"
-            onClick={game.gameControl.reverseBoard}
-          >
-            Flip Board
-          </button>
-          <button
-            className="w-3/4 rounded px-4 py-2 bg-red-200 hover:bg-red-500"
-            onClick={resign}
-          >
-            Resign
-          </button>
+        <div className="max-w-xl col-span-full lg:col-span-3 xl:col-span-3 w-full flex flex-col bg-stone-600 border-2 border-stone-800">
+          <GameMenu
+            historyControl={game.historyControl}
+            className="border-b-2 border-stone-800"
+          />
+          <div className="flex flex-start">
+            <button
+              className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-red-500 active:focus:bg-red-700 outline-none"
+              onClick={resign}
+            >
+              <FaFlag className="text-xs" /> resign
+            </button>
+            <ControlToolBar
+              goForward={game.historyControl.goForward}
+              goBack={game.historyControl.goBack}
+              activeMove={game.historyControl.activeMove}
+              reverseBoard={game.gameControl.reverseBoard}
+            />
+          </div>
           <h1>
             {!gameAborted &&
             game.historyControl.history.length == 1 &&
@@ -217,6 +225,7 @@ export default function OnlineGame({
               : ""}
           </h1>
           <Chat
+            className="border-t-2 border-stone-800"
             socket={gameSocket}
             whitePlayerData={whitePlayerData}
             blackPlayerData={blackPlayerData}
@@ -238,11 +247,13 @@ const Chat = ({
   whitePlayerData,
   blackPlayerData,
   player,
+  className,
 }: {
   socket: Socket;
   whitePlayerData: UserData;
   blackPlayerData: UserData;
   player: number;
+  className?: string;
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState<string>("");
@@ -284,26 +295,31 @@ const Chat = ({
   }, [messages]);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className={twMerge("w-full h-full flex flex-col", className)}>
       <div
         ref={messagesRef}
-        className="h-64 w-full bg-gray-300 flex-grow-0 overflow-y-scroll px-3 pb-1 no-scrollbar"
+        className="h-64 bottom-0 w-full bg-stone-300 border-b-2 border-stone-800 overflow-y-scroll p-2 no-scrollbar overflow-x-scroll"
       >
         {messages.map((m, i) => {
           return (
-            <h3 key={i} className={`pr-2  text-sm`}>
-              <span className="font-bold">
+            <p key={i} className={`text-stone-600 text-sm text-wrap`}>
+              <span
+                className={twMerge(
+                  "font-black",
+                  m.player == 0 ? "text-stone-800" : "text-stone-600",
+                )}
+              >
                 {m.player == 0 ? whitePlayerData.name : blackPlayerData.name}:
               </span>{" "}
               {m.text}
-            </h3>
+            </p>
           );
         })}
       </div>
       <div className="h-[10%] w-full flex flex-col gap-2">
         <div className="flex">
           <input
-            className="w-3/4"
+            className="w-3/4 outline-none px-0.5 bg-stone-300"
             type="text"
             onChange={(e) => setText(e.target.value)}
             value={text}
@@ -313,7 +329,7 @@ const Chat = ({
           />
           <button
             onClick={sendMessage}
-            className="w-1/4 bg-blue-400 hover:bg-blue-500"
+            className="w-1/4 border-l-2 border-l-stone-800 bg-stone-600 hover:bg-stone-700 flex justify-center items-center active:focus:bg-stone-800 text-stone-200 outline-none"
           >
             <IoMdSend />
           </button>
