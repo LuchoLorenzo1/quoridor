@@ -39,7 +39,7 @@ export default async function Profile({ params }: profileProps) {
   }
 
   return (
-    <div>
+    <div className="text-stone-700">
       <h1 className="text-xl font-bold mb-3">Games</h1>
       <table className="table">
         <thead>
@@ -65,7 +65,7 @@ export default async function Profile({ params }: profileProps) {
             return (
               <tr
                 key={game.id}
-                className="border-b-2 border-b-zinc-500 text-sm hover:bg-zinc-300/50"
+                className="border-b-2 border-b-stone-500 text-sm hover:bg-stone-300"
               >
                 <td align="left" className={`${c} w-40 md:w-64 min-w-[12rem]`}>
                   <div className="flex items-center gap-2">
@@ -73,11 +73,11 @@ export default async function Profile({ params }: profileProps) {
                       className={`w-3 h-3 bg-white ${
                         game.white_winner
                           ? "border-2 border-lime-600"
-                          : "border border-zinc-500"
+                          : "border border-stone-500"
                       }`}
                     />
                     <Link
-                      className="z-10 hover:font-bold"
+                      className="z-10 font-bold text-stone-800 hover:font-bold"
                       href={`/profile/${game.white_player_id}`}
                     >
                       {game.white_name}
@@ -90,7 +90,7 @@ export default async function Profile({ params }: profileProps) {
                       }`}
                     />
                     <Link
-                      className="z-10 hover:font-bold"
+                      className="z-10 font-bold text-stone-800 hover:font-bold"
                       href={`/profile/${game.black_player_id}`}
                     >
                       {game.black_name}

@@ -112,14 +112,7 @@ export default function Game({ params }: { params: { gameId: number } }) {
         fetchUsers(game);
       });
 
-      if (gameSocket.current.connected) {
-        gameSocket.current.emit("getGame");
-      } else {
-        gameSocket.current.connect();
-        gameSocket.current.on("connect", () => {
-          gameSocket.current?.emit("getGame");
-        });
-      }
+      gameSocket.current.emit("getGame");
     };
 
     fetchGame();

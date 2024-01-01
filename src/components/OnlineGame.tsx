@@ -2,19 +2,14 @@
 import { GameData, UserData } from "@/app/game/[gameId]/page";
 import useGame from "@/hooks/useGame";
 import useTimer from "@/hooks/useTimer";
-import {
-  MouseEventHandler,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import Board, { PawnPos, Wall } from "./Board";
 import { moveToString, stringToMove } from "@/utils";
 import GameOverModal from "./GameOverModal";
 import GameMenu from "./GameMenu";
 import GameUserData from "./GameUserData";
+import { IoMdSend } from "react-icons/io";
 
 export default function OnlineGame({
   gameSocket,
@@ -67,10 +62,6 @@ export default function OnlineGame({
   }, []);
 
   useEffect(() => {
-    game.gameControl.setTurn(gameData.turn == -1 ? 0 : gameData.turn);
-    game.historyControl.setHistory(gameData.history);
-    game.historyControl.goForward(Infinity);
-
     if (gameData.history.length > 1 && gameData.turn != -1) {
       abortTimer.pause();
     }
@@ -129,6 +120,14 @@ export default function OnlineGame({
         gameSocket.emit("ready");
       });
     }
+
+    return () => {
+      gameSocket.off("start");
+      gameSocket.off("move");
+      gameSocket.off("win");
+      gameSocket.off("abortGame");
+      gameSocket.disconnect();
+    };
   }, []);
 
   const checkLowTime =
@@ -151,9 +150,6 @@ export default function OnlineGame({
     abortTimer.pause();
   };
 
-  console.log(game.gameControl.whiteWallsLeft);
-  console.log(game.gameControl.blackWallsLeft);
-
   return (
     <>
       {game.gameControl.winner != null && (
@@ -164,6 +160,7 @@ export default function OnlineGame({
               : "You lost!"
           }
           text={game.gameControl.winner.reason}
+          time={60}
         />
       )}
       {gameAborted && <GameOverModal title={"Game Aborted"} />}
@@ -318,7 +315,7 @@ const Chat = ({
             onClick={sendMessage}
             className="w-1/4 bg-blue-400 hover:bg-blue-500"
           >
-            Send
+            <IoMdSend />
           </button>
         </div>
       </div>

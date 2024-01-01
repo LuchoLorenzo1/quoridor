@@ -7,7 +7,15 @@ import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 
-const GameOverModal = ({ title, text }: { title: string; text?: string }) => {
+const GameOverModal = ({
+  title,
+  text,
+  time = 30,
+}: {
+  title: string;
+  text?: string;
+  time?: number;
+}) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -23,20 +31,23 @@ const GameOverModal = ({ title, text }: { title: string; text?: string }) => {
     setOpen(true);
 
     return () => {
-      socket.off("found-game");
+      socket.off("foundGame");
     };
   }, []);
 
   const searchGame = () => {
     setLoading(true);
-    socket.emit("searchGame");
+    if (loading) {
+      socket.emit("cancelSearch", time);
+    }
+    socket.emit("searchGame", time);
   };
 
   return (
     <Dialog.Root open={open} onOpenChange={() => setOpen(!open)}>
       <Dialog.Portal>
         <Dialog.Overlay className="bg-black/10 data-[state=open]:animate-overlayShow fixed inset-0" />
-        <Dialog.Content className="flex flex-col gap-5 w-60 items-center text-white bg-zinc-500 z-50 p-5 rounded-md fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <Dialog.Content className="flex flex-col gap-5 w-60 items-center text-white bg-stone-500 z-50 p-5 rounded-md fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <Dialog.Close
             asChild
             className="focus:shadown-none focus:border-none focus:outline-none active:outline-none"
