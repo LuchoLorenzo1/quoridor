@@ -97,8 +97,9 @@ export default function Game({ params }: { params: { gameId: number } }) {
         console.log("Error fetching the game");
       }
 
+      console.log(process.env.NEXT_PUBLIC_WS_URL);
       gameSocket.current = io(
-        `${process.env.WS_URL || "http://localhost:8000/"}game/${
+        `${process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8000"}/game/${
           params.gameId
         }`,
         {

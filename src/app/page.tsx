@@ -3,13 +3,14 @@ import Spinner from "@/components/Spinner";
 import socket from "@/server";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { ImTrophy } from "react-icons/im";
 import { FaMedal } from "react-icons/fa";
 
 interface Stats {
   playing: string;
+  online: string;
 }
 
 export default function Home() {
@@ -32,11 +33,11 @@ export default function Home() {
 
     socket.on("reconnectGame", (gameId: string) => setReconnectGameId(gameId));
     socket.on("foundGame", (gameId: string) => router.push(`/game/${gameId}`));
-    socket.on("stats", (stats: Stats) => {
-      setStats(stats);
-    });
+    socket.on("stats", (stats: Stats) => setStats(stats));
 
     return () => {
+      socket.off("reconnectGame");
+      socket.off("stats");
       socket.off("foundGame");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,7 +95,7 @@ export default function Home() {
           <ul className="select-none w-full h-full py-2 text-stone-800 text-sm flex gap-3">
             <li className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-green-500 hover:bg-green-600" />
-              <h1>632 users online</h1>
+              <h1>{stats.online} users online</h1>
             </li>
             <li className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-orange-500 hover:bg-orange-600" />
@@ -111,7 +112,7 @@ export default function Home() {
           </button>
         )}
       </div>
-      <ul className="text-xl flex flex-col rounded px-3 py-4 bg-stone-300 col-span-10 place-items-center md:col-span-2 gap-3 justify-center text-stone-800">
+      <ul className="text-xl flex flex-col rounded px-3 py-4 bg-stone-200 col-span-10 place-items-center md:col-span-2 gap-3 justify-center text-stone-800 shadow shadow-stone-800">
         <li className="flex items-center gap-1">
           <h1>ELO 1238</h1>
           <ImTrophy />

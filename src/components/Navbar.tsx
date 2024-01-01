@@ -13,22 +13,24 @@ const Navbar = () => {
         <NavLink href="/offline" text="Freeboard" />
         <NavLink href="/offline" text="How to Play" />
       </div>
-      {data ? (
-        <div className="flex gap-3 items-center mr-5">
-          <NavLink callback={() => signOut()} text="Sign out" />
-          <Link href={`/profile/${data.user.id}`}>
-            <Image
-              src={data.user?.image || "/default_profile_picture.png"}
-              width={35}
-              height={35}
-              alt="profile picture"
-              className="min-w-[35px] rounded-full hover:opacity-50"
-            />
-          </Link>
-        </div>
-      ) : (
-        <NavLink href="/signin" text="Sign in" />
-      )}
+      <div className="flex gap-3 items-center mx-3">
+        {data ? (
+          <>
+            <NavLink callback={() => signOut()} text="Sign out" />
+            <Link href={`/profile/${data.user.id}`}>
+              <Image
+                src={data.user?.image || "/default_profile_picture.png"}
+                width={35}
+                height={35}
+                alt="profile picture"
+                className="min-w-[35px] rounded-full hover:opacity-50"
+              />
+            </Link>
+          </>
+        ) : (
+          <NavLink href="/signin" text="Sign in" />
+        )}
+      </div>
     </nav>
   );
 };
