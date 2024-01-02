@@ -50,6 +50,9 @@ export default function OnlineGame({
     delay: 1000,
   });
 
+  const [disconnected, setDisconnected] = useState(false);
+  const disconnectedTimer = useTimer({ autoStart: false, initialSeconds: 30 });
+
   const [gameAborted, setGameAborted] = useState(false);
   const [rematcher, setRematcher] = useState<number | null>(null);
 
@@ -108,10 +111,10 @@ export default function OnlineGame({
     gameSocket.on("win", (winner: number, reason?: string) => {
       game.gameControl.setWinner({ winner, reason });
       new Audio("/Notify.mp3").play();
-
       whiteTimer.pause();
       blackTimer.pause();
       abortTimer.pause();
+      setDisconnected(false);
     });
 
     gameSocket.on("abortGame", () => {
@@ -121,15 +124,12 @@ export default function OnlineGame({
       whiteTimer.pause();
       blackTimer.pause();
       abortTimer.pause();
+      setDisconnected(false);
     });
 
-    gameSocket.on("rematchGame", (gameId) => {
-      console.log("rematch game", gameId);
-      router.push(`/game/${gameId}`);
-    });
+    gameSocket.on("rematchGame", (gameId) => router.push(`/game/${gameId}`));
 
     gameSocket.on("rematch", (playerId: string) => {
-      console.log("rematch", playerId, gameData.players);
       if (playerId == gameData.players[0]) {
         setRematcher(0);
       } else if (playerId == gameData.players[1]) {
@@ -139,6 +139,28 @@ export default function OnlineGame({
       }
       if (gameData.players[gameData.player == 0 ? 1 : 0] == playerId)
         new Audio("/Notify.mp3").play();
+    });
+
+    gameSocket.on("playerDisconnected", (playerId: string) => {
+      if (game.gameControl.winner != null) return;
+      if (
+        (gameData.player == 1 && playerId == whitePlayerData.id) ||
+        (gameData.player == 0 && playerId == blackPlayerData.id)
+      ) {
+        setDisconnected(true);
+        disconnectedTimer.restart(250);
+      }
+    });
+
+    gameSocket.on("playerConnected", (playerId: string) => {
+      if (game.gameControl.winner != null) return;
+      if (
+        (gameData.player == 1 && playerId == whitePlayerData.id) ||
+        (gameData.player == 0 && playerId == blackPlayerData.id)
+      ) {
+        setDisconnected(false);
+        disconnectedTimer.pause();
+      }
     });
 
     gameSocket.emit("ready");
@@ -172,6 +194,7 @@ export default function OnlineGame({
     whiteTimer.pause();
     blackTimer.pause();
     abortTimer.pause();
+    setDisconnected(false);
   };
 
   const abort = () => gameSocket.emit("abort");
@@ -215,6 +238,8 @@ export default function OnlineGame({
             timer={blackTimer}
             wallsLeft={game.gameControl.blackWallsLeft}
             color="black"
+            disconnected={gameData.player == 0 ? disconnected : false}
+            disconnectedSeconds={disconnectedTimer.seconds}
           />
           <Board
             boardState={game.boardState}
@@ -225,6 +250,8 @@ export default function OnlineGame({
             playerData={whitePlayerData}
             timer={whiteTimer}
             wallsLeft={game.gameControl.whiteWallsLeft}
+            disconnected={gameData.player == 1 ? disconnected : false}
+            disconnectedSeconds={disconnectedTimer.seconds}
           />
         </div>
         <div className="max-w-xl col-span-full lg:col-span-3 xl:col-span-3 w-full flex flex-col bg-stone-600 border-2 border-stone-800 rounded">

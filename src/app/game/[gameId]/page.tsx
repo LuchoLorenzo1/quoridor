@@ -18,10 +18,6 @@ export interface GameData {
   players: string[];
   whiteTimeLeft: number;
   blackTimeLeft: number;
-  wallsLeft: {
-    white: number;
-    black: number;
-  };
   winner?: number;
   winningReason?: string;
 }
@@ -82,10 +78,6 @@ export default function Game({ params }: { params: { gameId: number } }) {
             player: null,
             players: [data.white_player_id, data.black_player_id],
             turn: 0,
-            wallsLeft: {
-              white: 10,
-              black: 10,
-            },
             winner: data.white_winner ? 0 : 1,
             winningReason,
           };

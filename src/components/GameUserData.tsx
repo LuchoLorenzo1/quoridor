@@ -1,25 +1,37 @@
 import Link from "next/link";
 import Image from "next/image";
 import { UserData } from "@/app/game/[gameId]/page";
+import { MdOutlineWifiOff } from "react-icons/md";
+import { useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
+import useTimer from "@/hooks/useTimer";
 
 const GameUserData = ({
   playerData,
   wallsLeft,
   timer,
   color = "white",
+  disconnected = false,
+  disconnectedSeconds = 0,
 }: {
   playerData: UserData;
   wallsLeft: number;
   timer?: any;
   color?: "white" | "black";
+  disconnected?: boolean;
+  disconnectedSeconds?: number;
 }) => {
   return (
     <div className="flex items-center justify-between w-full h-full">
       <div className="flex gap-2">
         {playerData.id ? (
-          <Link href={`/profile/${playerData.id}`}>
-            {" "}
-            <Avatar src={playerData.image} />{" "}
+          <Link className="relative" href={`/profile/${playerData.id}`}>
+            {disconnected && (
+              <div className="w-full h-full absolute bg-red-500/80 rounded text-white font-bold text-3xl m-auto">
+                <MdOutlineWifiOff className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              </div>
+            )}
+            <Avatar src={playerData.image} />
           </Link>
         ) : (
           <Avatar src={playerData.image} />
@@ -27,17 +39,26 @@ const GameUserData = ({
         <div className="flex flex-col">
           <h1 className="font-bold">{playerData.name}</h1>
           <div className="flex items-center gap-2">
-            {Array(wallsLeft <= 0 ? 0 : wallsLeft)
-              .fill(0)
-              .map((_, i) => (
-                <span
-                  key={i}
-                  className={`${
-                    color == "white" ? "bg-yellow-400" : "bg-yellow-600"
-                  }  w-2 h-5`}
-                />
-              ))}
-            <h3 className="text-xs font-thin">x({wallsLeft})</h3>
+            {disconnected ? (
+              <h3 className="text-xs font-thin">
+                {playerData.name} disconnected. {disconnectedSeconds} seconds
+                for auto-resign
+              </h3>
+            ) : (
+              <>
+                {Array(wallsLeft <= 0 ? 0 : wallsLeft)
+                  .fill(0)
+                  .map((_, i) => (
+                    <span
+                      key={i}
+                      className={`${
+                        color == "white" ? "bg-yellow-400" : "bg-yellow-600"
+                      }  w-2 h-5`}
+                    />
+                  ))}
+                <h3 className="text-xs font-thin">x({wallsLeft})</h3>
+              </>
+            )}
           </div>
         </div>
       </div>
