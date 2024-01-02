@@ -3,17 +3,20 @@
 import { GameData, UserData } from "@/app/game/[gameId]/page";
 import useGame from "@/hooks/useGame";
 import useTimer from "@/hooks/useTimer";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import Board, { PawnPos, Wall } from "./Board";
 import { moveToString, stringToMove } from "@/utils";
 import GameOverModal from "./GameOverModal";
 import GameMenu from "./GameMenu";
 import GameUserData from "./GameUserData";
-import { IoMdSend } from "react-icons/io";
-import { twMerge } from "tailwind-merge";
 import ControlToolBar from "./GameToolBar";
 import { FaFlag } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import Spinner from "./Spinner";
+import NewGameButton from "./NewGameButton";
+import Chat from "./Chat";
+import { IoMdCheckmark, IoMdClose } from "react-icons/io";
 
 export default function OnlineGame({
   gameSocket,
@@ -26,6 +29,7 @@ export default function OnlineGame({
   whitePlayerData: UserData;
   blackPlayerData: UserData;
 }) {
+  const router = useRouter();
   const game = useGame({
     player: gameData.player,
     initialHistory: gameData.history,
@@ -47,6 +51,7 @@ export default function OnlineGame({
   });
 
   const [gameAborted, setGameAborted] = useState(false);
+  const [rematcher, setRematcher] = useState<number | null>(null);
 
   const moveCallback = useCallback((pos: PawnPos, wall?: Wall) => {
     if (game.historyControl.activeMove == 0) abortTimer.restart(10, true);
@@ -66,6 +71,7 @@ export default function OnlineGame({
   }, []);
 
   useEffect(() => {
+    console.log(gameData.players);
     if (gameData.history.length > 1 && gameData.turn != -1) {
       abortTimer.pause();
     }
@@ -109,6 +115,7 @@ export default function OnlineGame({
     });
 
     gameSocket.on("abortGame", () => {
+      if (game.gameControl.winner != null) return;
       setGameAborted(true);
       new Audio("/Notify.mp3").play();
       whiteTimer.pause();
@@ -116,20 +123,33 @@ export default function OnlineGame({
       abortTimer.pause();
     });
 
-    if (gameSocket.connected) {
-      gameSocket.emit("ready");
-    } else {
-      gameSocket.connect();
-      gameSocket.once("connect", () => {
-        gameSocket.emit("ready");
-      });
-    }
+    gameSocket.on("rematchGame", (gameId) => {
+      console.log("rematch game", gameId);
+      router.push(`/game/${gameId}`);
+    });
+
+    gameSocket.on("rematch", (playerId: string) => {
+      console.log("rematch", playerId, gameData.players);
+      if (playerId == gameData.players[0]) {
+        setRematcher(0);
+      } else if (playerId == gameData.players[1]) {
+        setRematcher(1);
+      } else {
+        setRematcher(null);
+      }
+      if (gameData.players[gameData.player == 0 ? 1 : 0] == playerId)
+        new Audio("/Notify.mp3").play();
+    });
+
+    gameSocket.emit("ready");
 
     return () => {
       gameSocket.off("start");
       gameSocket.off("move");
       gameSocket.off("win");
       gameSocket.off("abortGame");
+      gameSocket.off("rematchGame");
+      gameSocket.off("rematch");
       gameSocket.disconnect();
     };
   }, []);
@@ -160,6 +180,15 @@ export default function OnlineGame({
     (gameData.player == 0 && game.historyControl.history.length == 0) ||
     (gameData.player == 1 && game.historyControl.history.length <= 1);
 
+  const sendRematch = () => {
+    gameSocket.emit("rematch");
+  };
+
+  const rejectRematch = () => {
+    gameSocket.emit("rejectRematch");
+    setRematcher(null);
+  };
+
   return (
     <>
       {game.gameControl.winner != null && (
@@ -169,6 +198,7 @@ export default function OnlineGame({
               ? "You won!"
               : "You lost!"
           }
+          gameSocket={gameSocket}
           text={game.gameControl.winner.reason}
           time={60}
         />
@@ -197,11 +227,53 @@ export default function OnlineGame({
             wallsLeft={game.gameControl.whiteWallsLeft}
           />
         </div>
-        <div className="max-w-xl col-span-full lg:col-span-3 xl:col-span-3 w-full flex flex-col bg-stone-600 border-2 border-stone-800">
+        <div className="max-w-xl col-span-full lg:col-span-3 xl:col-span-3 w-full flex flex-col bg-stone-600 border-2 border-stone-800 rounded">
           <GameMenu
             historyControl={game.historyControl}
             className="border-b-2 border-stone-800"
           />
+          {game.gameControl.winner != null &&
+            rematcher == (gameData.player == 0 ? 1 : 0) && (
+              <div className="flex flex-col items-center">
+                <h1 className="text-sm font-bold text-stone-200 mt-2">
+                  {gameData.player == 0
+                    ? blackPlayerData.name
+                    : whitePlayerData.name}{" "}
+                  wants a rematch
+                </h1>
+                <RespondRematch
+                  rejectRematch={rejectRematch}
+                  sendRematch={sendRematch}
+                />
+              </div>
+            )}
+          {game.gameControl.winner != null &&
+            rematcher != (gameData.player == 0 ? 1 : 0) && (
+              <div className="flex flex-col items-center border-b-2 border-stone-800">
+                {rematcher != null && (
+                  <h1 className="text-sm font-bold text-stone-200 mt-2">
+                    Rematch requested...
+                  </h1>
+                )}
+                <div className="flex px-4 w-full py-2 h-12 items-center justify-center gap-3">
+                  <NewGameButton
+                    time={60}
+                    className="max-w-[12rem] w-1/2 flex items-center justify-center  h-full font-bold text-stone-200 bg-stone-700 hover:bg-stone-500 active:focus:bg-stone-700 outline-none rounded-none"
+                  />
+                  <button
+                    className="max-w-[12rem] px-4 w-1/2 h-full flex items-center justify-center font-bold text-stone-200 bg-stone-700 hover:bg-stone-500 active:focus:bg-stone-700 outline-none"
+                    onClick={sendRematch}
+                  >
+                    {rematcher == null ? (
+                      "Rematch"
+                    ) : (
+                      <Spinner className="border-white" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
           <div className="flex flex-start">
             {abortable ? (
               <button
@@ -252,104 +324,27 @@ export default function OnlineGame({
   );
 }
 
-interface Message {
-  text: String;
-  player: number;
-}
-
-const Chat = ({
-  socket,
-  whitePlayerData,
-  blackPlayerData,
-  player,
-  className,
+const RespondRematch = ({
+  rejectRematch,
+  sendRematch,
 }: {
-  socket: Socket;
-  whitePlayerData: UserData;
-  blackPlayerData: UserData;
-  player: number;
-  className?: string;
+  rejectRematch: () => void;
+  sendRematch: () => void;
 }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [text, setText] = useState<string>("");
-  const messagesRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    socket.on("chatMessage", (t: string) => {
-      setMessages((m) => [
-        ...m,
-        { text: t.slice(2), player: player == 0 ? 1 : 0 },
-      ]);
-    });
-
-    socket.on("chat", (m: String[]) => {
-      const ms: Message[] = [];
-      m.forEach((message) => {
-        const player = +message[0];
-        const text = message.slice(2);
-        ms.push({ player, text });
-      });
-      setMessages(ms);
-    });
-
-    socket.emit("getChat");
-  }, []);
-
-  const sendMessage = () => {
-    if (!text) return;
-    setMessages((m) => [...m, { text, player }]);
-    socket.emit("chatMessage", text);
-    setText("");
-  };
-
-  useEffect(() => {
-    messagesRef.current?.scrollTo({
-      behavior: "smooth",
-      top: messagesRef.current.scrollHeight + 50,
-    });
-  }, [messages]);
-
   return (
-    <div className={twMerge("w-full h-full flex flex-col", className)}>
-      <div
-        ref={messagesRef}
-        className="h-64 bottom-0 w-full bg-stone-300 border-b-2 border-stone-800 overflow-y-scroll p-2 no-scrollbar overflow-x-scroll"
+    <div className="flex p-4 w-full items-center justify-center gap-3 border-b-2 border-stone-800 mx-4">
+      <button
+        className="max-w-[12rem] w-1/2 flex justify-center items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-700 hover:bg-stone-500 active:focus:bg-stone-800 outline-none"
+        onClick={rejectRematch}
       >
-        {messages.map((m, i) => {
-          return (
-            <p key={i} className={`text-stone-600 text-sm text-wrap`}>
-              <span
-                className={twMerge(
-                  "font-black",
-                  m.player == 0 ? "text-stone-800" : "text-stone-600",
-                )}
-              >
-                {m.player == 0 ? whitePlayerData.name : blackPlayerData.name}:
-              </span>{" "}
-              {m.text}
-            </p>
-          );
-        })}
-      </div>
-      <div className="h-[10%] w-full flex flex-col gap-2">
-        <div className="flex">
-          <input
-            className="w-3/4 outline-none px-0.5 bg-stone-300"
-            type="text"
-            onChange={(e) => setText(e.target.value)}
-            value={text}
-            onKeyDown={(event) => {
-              if (event.key == "Enter") sendMessage();
-            }}
-          />
-          <button
-            onClick={sendMessage}
-            className="w-1/4 border-l-2 border-l-stone-800 bg-stone-600 hover:bg-stone-700 flex justify-center items-center active:focus:bg-stone-800 text-stone-200 outline-none"
-          >
-            <IoMdSend />
-          </button>
-        </div>
-      </div>
+        <IoMdClose className="text-xl" />
+      </button>
+      <button
+        className="max-w-[12rem] w-1/2 flex justify-center items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-700 hover:bg-stone-500 active:focus:bg-stone-800 outline-none"
+        onClick={sendRematch}
+      >
+        <IoMdCheckmark className="text-xl" />
+      </button>
     </div>
   );
 };
