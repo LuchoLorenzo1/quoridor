@@ -1,4 +1,3 @@
-"use client";
 /* eslint-disable react-hooks/exhaustive-deps */
 import { GameData, UserData } from "@/app/game/[gameId]/page";
 import useGame from "@/hooks/useGame";
@@ -31,7 +30,7 @@ export default function OnlineGame({
 }) {
   const router = useRouter();
   const game = useGame({
-    player: gameData.player,
+    player: gameData.player == null ? -1 : gameData.player,
     initialHistory: gameData.history,
     initialTurn: gameData.turn,
     defineWinner: false,
@@ -59,16 +58,14 @@ export default function OnlineGame({
   const moveCallback = useCallback((pos: PawnPos, wall?: Wall) => {
     if (game.historyControl.activeMove == 0) abortTimer.restart(10, true);
 
-    const res = game.gameControl.moveCallback(pos, wall);
-    if (!res) return;
-
+    const turn = game.gameControl.moveCallback(pos, wall);
     gameSocket.emit("move", moveToString(pos, wall), (timeLeft: number) => {
-      if (gameData.player == 0) {
-        whiteTimer.restart(timeLeft * 10, false);
-        blackTimer.resume();
-      } else {
+      if (turn == 0) {
         blackTimer.restart(timeLeft * 10, false);
         whiteTimer.resume();
+      } else {
+        whiteTimer.restart(timeLeft * 10, false);
+        blackTimer.resume();
       }
     });
   }, []);
@@ -79,6 +76,7 @@ export default function OnlineGame({
     }
 
     if (gameData.player == 1) game.gameControl.reverseBoard();
+    if (gameData.player == null) game.gameControl.setInteractive(false);
 
     gameSocket.on("start", () => {
       new Audio("/Notify.mp3").play();
@@ -95,16 +93,14 @@ export default function OnlineGame({
       }
 
       const { pos, wall } = stringToMove(move);
-
-      if (gameData.player == 0) {
+      const turn = game.gameControl.moveCallback(pos, wall);
+      if (turn == 0) {
         blackTimer.restart(timeLeft * 10, false);
         whiteTimer.resume();
       } else {
         whiteTimer.restart(timeLeft * 10, false);
         blackTimer.resume();
       }
-
-      game.gameControl.moveCallback(pos, wall);
     });
 
     gameSocket.on("win", (winner: number, reason?: string) => {
@@ -114,6 +110,7 @@ export default function OnlineGame({
       blackTimer.pause();
       abortTimer.pause();
       setDisconnected(false);
+      game.gameControl.setInteractive(false);
     });
 
     gameSocket.on("abortGame", () => {
@@ -124,6 +121,7 @@ export default function OnlineGame({
       blackTimer.pause();
       abortTimer.pause();
       setDisconnected(false);
+      game.gameControl.setInteractive(false);
     });
 
     gameSocket.on("rematchGame", (gameId) => router.push(`/game/${gameId}`));
@@ -187,26 +185,32 @@ export default function OnlineGame({
   }, [checkLowTime]);
 
   const resign = () => {
-    if (game.gameControl.winner != null) return;
+    if (game.gameControl.winner != null || gameData.player == null) return;
     gameSocket.emit("resign");
     new Audio("/Notify.mp3").play();
     whiteTimer.pause();
     blackTimer.pause();
     abortTimer.pause();
+    game.gameControl.setInteractive(false);
     setDisconnected(false);
   };
 
-  const abort = () => gameSocket.emit("abort");
+  const abort = () => {
+    if (gameData.player == null) return;
+    gameSocket.emit("abort");
+  };
 
   const abortable =
     (gameData.player == 0 && game.historyControl.history.length == 0) ||
     (gameData.player == 1 && game.historyControl.history.length <= 1);
 
   const sendRematch = () => {
+    if (gameData.player == null) return;
     gameSocket.emit("rematch");
   };
 
   const rejectRematch = () => {
+    if (gameData.player == null) return;
     gameSocket.emit("rejectRematch");
     setRematcher(null);
   };
@@ -223,13 +227,11 @@ export default function OnlineGame({
       {game.gameControl.winner != null && (
         <GameOverModal
           title={
-            game.gameControl.winner.winner == gameData.player
-              ? "You won!"
-              : "You lost!"
+            game.gameControl.winner.winner == 0 ? "White won!" : "Black lost!"
           }
-          gameSocket={gameSocket}
           text={game.gameControl.winner.reason}
           time={60}
+          playAgain={gameData.player != null}
           rematchState={{
             rematch: respondRematch,
             text: respondRematchText,
@@ -238,7 +240,12 @@ export default function OnlineGame({
           }}
         />
       )}
-      {gameAborted && <GameOverModal title={"Game Aborted"} />}
+      {gameAborted && (
+        <GameOverModal
+          playAgain={gameData.player != null}
+          title={"Game Aborted"}
+        />
+      )}
       <div className="grid grid-cols-10 place-items-center w-full max-w-7xl h-full gap-5">
         <div
           className={`flex ${
@@ -271,7 +278,7 @@ export default function OnlineGame({
             historyControl={game.historyControl}
             className="border-b-2 border-stone-800"
           />
-          {respondRematch && (
+          {gameData.player != null && respondRematch && (
             <div className="flex flex-col items-center border-b-2 border-stone-800">
               <h1 className="text-sm font-bold text-stone-200 mt-2">
                 {respondRematchText}
@@ -283,7 +290,8 @@ export default function OnlineGame({
               />
             </div>
           )}
-          {game.gameControl.winner != null &&
+          {gameData.player != null &&
+            game.gameControl.winner != null &&
             rematcher != (gameData.player == 0 ? 1 : 0) && (
               <div className="flex flex-col items-center border-b-2 border-stone-800">
                 {rematcher != null && (
@@ -311,21 +319,22 @@ export default function OnlineGame({
             )}
 
           <div className="flex flex-start">
-            {abortable ? (
-              <button
-                className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-red-500 active:focus:bg-red-700 outline-none"
-                onClick={abort}
-              >
-                <FaFlag className="text-xs" /> abort
-              </button>
-            ) : (
-              <button
-                className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-red-500 active:focus:bg-red-700 outline-none"
-                onClick={resign}
-              >
-                <FaFlag className="text-xs" /> resign
-              </button>
-            )}
+            {gameData.player != null &&
+              (abortable ? (
+                <button
+                  className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-red-500 active:focus:bg-red-700 outline-none"
+                  onClick={abort}
+                >
+                  <FaFlag className="text-xs" /> abort
+                </button>
+              ) : (
+                <button
+                  className="flex items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-600 hover:bg-red-500 active:focus:bg-red-700 outline-none"
+                  onClick={resign}
+                >
+                  <FaFlag className="text-xs" /> resign
+                </button>
+              ))}
             <ControlToolBar
               goForward={game.historyControl.goForward}
               goBack={game.historyControl.goBack}

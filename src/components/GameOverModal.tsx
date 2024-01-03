@@ -13,11 +13,13 @@ const GameOverModal = ({
   text,
   time = 30,
   rematchState,
+  playAgain,
 }: {
   title: string;
   gameSocket?: Socket;
   text?: string;
   time?: number;
+  playAgain?: boolean;
   rematchState?: {
     rematch: boolean;
     sendRematch: () => void;
@@ -55,11 +57,13 @@ const GameOverModal = ({
           </Dialog.Close>
           <Dialog.Title className="text-2xl font-bold">{title}</Dialog.Title>
           {text && <h2>{text}</h2>}
-          <NewGameButton
-            time={time}
-            className="w-3/4 text-center font-bold flex-none"
-          />
-          {rematchState ? (
+          {playAgain && (
+            <NewGameButton
+              time={time}
+              className="w-3/4 text-center font-bold flex-none"
+            />
+          )}
+          {playAgain && rematchState ? (
             rematchState.rematch ? (
               <>
                 <h1 className="text-sm font-bold text-stone-200 mt-2">

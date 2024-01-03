@@ -1,12 +1,13 @@
 import { UserData } from "@/app/game/[gameId]/page";
+import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { IoMdSend } from "react-icons/io";
 import { Socket } from "socket.io-client";
 import { twMerge } from "tailwind-merge";
 
 interface Message {
-  text: String;
-  player?: number;
+  text: string;
+  name?: string;
 }
 
 const Chat = ({
@@ -22,24 +23,24 @@ const Chat = ({
   player: number;
   className?: string;
 }) => {
+  const session = useSession();
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState<string>("");
   const messagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     socket.on("chatMessage", (t: string) => {
-      setMessages((m) => [
-        ...m,
-        { text: t.slice(2), player: player == 0 ? 1 : 0 },
-      ]);
+      const [name, ...tx] = t.split(":");
+      console.log(name, tx.join(":"));
+      setMessages((m) => [...m, { text: tx.join(":"), name }]);
     });
 
     socket.on("chat", (m: String[]) => {
       const ms: Message[] = [];
-      m.forEach((message) => {
-        const player = +message[0];
-        const text = message.slice(2);
-        ms.push({ player, text });
+      m.forEach((t) => {
+        const [name, text] = t.split(":");
+        ms.push({ name, text });
       });
       setMessages(ms);
     });
@@ -65,8 +66,9 @@ const Chat = ({
   }, []);
 
   const sendMessage = () => {
-    if (!text) return;
-    setMessages((m) => [...m, { text, player }]);
+    const name = session.data?.user.name;
+    if (!text || session.status != "authenticated" || !name) return;
+    setMessages((m) => [...m, { text, name }]);
     socket.emit("chatMessage", text);
     setText("");
   };
@@ -87,14 +89,19 @@ const Chat = ({
         {messages.map((m, i) => {
           return (
             <p key={i} className={`text-stone-600 text-sm text-wrap`}>
-              {m.player != undefined && (
+              {m.name && (
                 <span
                   className={twMerge(
                     "font-black",
-                    m.player == 0 ? "text-stone-800" : "text-stone-600",
+                    m.name == blackPlayerData.name
+                      ? "text-stone-800"
+                      : m.name == whitePlayerData.name
+                        ? "text-stone-600"
+                        : "text-stone-700",
                   )}
                 >
-                  {m.player == 0 ? whitePlayerData.name : blackPlayerData.name}:{" "}
+                  {m.name}
+                  {": "}
                 </span>
               )}
               {m.text}
