@@ -20,10 +20,6 @@ const NewGameButton = ({
     socket.on("foundGame", (gameId: number) => {
       router.push(`/game/${gameId}`);
     });
-
-    return () => {
-      socket.off("foundGame");
-    };
   }, []);
 
   const searchGame = () => {
@@ -39,10 +35,7 @@ const NewGameButton = ({
   return (
     <button
       onClick={searchGame}
-      className={twMerge(
-        "px-5 py-2 bg-green-500 rounded-md flex items-center",
-        className,
-      )}
+      className={twMerge("px-5 py-2 bg-green-500 rounded-md", className)}
     >
       {loading ? <Spinner className="border-white" /> : "Play Again"}
     </button>

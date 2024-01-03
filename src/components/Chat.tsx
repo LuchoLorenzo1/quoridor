@@ -6,7 +6,7 @@ import { twMerge } from "tailwind-merge";
 
 interface Message {
   text: String;
-  player: number;
+  player?: number;
 }
 
 const Chat = ({
@@ -44,7 +44,24 @@ const Chat = ({
       setMessages(ms);
     });
 
+    socket.on("leftChat", (player: number) => {
+      setMessages((m) => [
+        ...m,
+        {
+          text: `${
+            player == 0 ? whitePlayerData.name : blackPlayerData.name
+          } left the chat`,
+        },
+      ]);
+    });
+
     socket.emit("getChat");
+
+    return () => {
+      socket.off("chatMessage");
+      socket.off("chatMessage");
+      socket.off("chat");
+    };
   }, []);
 
   const sendMessage = () => {
@@ -70,14 +87,16 @@ const Chat = ({
         {messages.map((m, i) => {
           return (
             <p key={i} className={`text-stone-600 text-sm text-wrap`}>
-              <span
-                className={twMerge(
-                  "font-black",
-                  m.player == 0 ? "text-stone-800" : "text-stone-600",
-                )}
-              >
-                {m.player == 0 ? whitePlayerData.name : blackPlayerData.name}:
-              </span>{" "}
+              {m.player != undefined && (
+                <span
+                  className={twMerge(
+                    "font-black",
+                    m.player == 0 ? "text-stone-800" : "text-stone-600",
+                  )}
+                >
+                  {m.player == 0 ? whitePlayerData.name : blackPlayerData.name}:{" "}
+                </span>
+              )}
               {m.text}
             </p>
           );

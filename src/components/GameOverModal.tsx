@@ -5,17 +5,25 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Socket } from "socket.io-client";
 import NewGameButton from "./NewGameButton";
+import RespondRematch from "./RespondRematch";
+import Spinner from "./Spinner";
 
 const GameOverModal = ({
   title,
-  gameSocket,
   text,
   time = 30,
+  rematchState,
 }: {
   title: string;
   gameSocket?: Socket;
   text?: string;
   time?: number;
+  rematchState?: {
+    rematch: boolean;
+    sendRematch: () => void;
+    text: string;
+    rejectRematch: () => void;
+  };
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -23,13 +31,12 @@ const GameOverModal = ({
     setOpen(true);
   }, []);
 
-  const rematch = () => {
-    if (gameSocket) {
-      gameSocket.emit("rematch");
-      setOpen(false);
-    }
+  const _sendRematch = () => {
+    rematchState?.sendRematch();
+    setOpen(false);
   };
 
+  console.log(rematchState);
   return (
     <Dialog.Root open={open} onOpenChange={() => setOpen(!open)}>
       <Dialog.Portal>
@@ -48,14 +55,31 @@ const GameOverModal = ({
           </Dialog.Close>
           <Dialog.Title className="text-2xl font-bold">{title}</Dialog.Title>
           {text && <h2>{text}</h2>}
-          <NewGameButton time={time} />
-          {gameSocket && (
-            <button
-              onClick={rematch}
-              className="px-5 py-2 bg-green-500 rounded-md flex items-center"
-            >
-              Rematch
-            </button>
+          <NewGameButton
+            time={time}
+            className="w-3/4 text-center font-bold flex-none"
+          />
+          {rematchState ? (
+            rematchState.rematch ? (
+              <>
+                <h1 className="text-sm font-bold text-stone-200 mt-2">
+                  {rematchState.text}
+                </h1>
+                <RespondRematch
+                  rejectRematch={rematchState.rejectRematch}
+                  sendRematch={_sendRematch}
+                />{" "}
+              </>
+            ) : (
+              <button
+                onClick={_sendRematch}
+                className="py-2 bg-green-500 rounded-md w-3/4 text-center font-bold"
+              >
+                Rematch
+              </button>
+            )
+          ) : (
+            ""
           )}
         </Dialog.Content>
       </Dialog.Portal>

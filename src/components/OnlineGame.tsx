@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import Spinner from "./Spinner";
 import NewGameButton from "./NewGameButton";
 import Chat from "./Chat";
-import { IoMdCheckmark, IoMdClose } from "react-icons/io";
+import RespondRematch from "./RespondRematch";
 
 export default function OnlineGame({
   gameSocket,
@@ -74,7 +74,6 @@ export default function OnlineGame({
   }, []);
 
   useEffect(() => {
-    console.log(gameData.players);
     if (gameData.history.length > 1 && gameData.turn != -1) {
       abortTimer.pause();
     }
@@ -212,6 +211,13 @@ export default function OnlineGame({
     setRematcher(null);
   };
 
+  const respondRematch =
+    game.gameControl.winner != null &&
+    rematcher == (gameData.player == 0 ? 1 : 0);
+  const respondRematchText = `${
+    gameData.player == 0 ? blackPlayerData.name : whitePlayerData.name
+  } wants a rematch`;
+
   return (
     <>
       {game.gameControl.winner != null && (
@@ -224,6 +230,12 @@ export default function OnlineGame({
           gameSocket={gameSocket}
           text={game.gameControl.winner.reason}
           time={60}
+          rematchState={{
+            rematch: respondRematch,
+            text: respondRematchText,
+            sendRematch,
+            rejectRematch,
+          }}
         />
       )}
       {gameAborted && <GameOverModal title={"Game Aborted"} />}
@@ -259,21 +271,18 @@ export default function OnlineGame({
             historyControl={game.historyControl}
             className="border-b-2 border-stone-800"
           />
-          {game.gameControl.winner != null &&
-            rematcher == (gameData.player == 0 ? 1 : 0) && (
-              <div className="flex flex-col items-center">
-                <h1 className="text-sm font-bold text-stone-200 mt-2">
-                  {gameData.player == 0
-                    ? blackPlayerData.name
-                    : whitePlayerData.name}{" "}
-                  wants a rematch
-                </h1>
-                <RespondRematch
-                  rejectRematch={rejectRematch}
-                  sendRematch={sendRematch}
-                />
-              </div>
-            )}
+          {respondRematch && (
+            <div className="flex flex-col items-center border-b-2 border-stone-800">
+              <h1 className="text-sm font-bold text-stone-200 mt-2">
+                {respondRematchText}
+              </h1>
+              <RespondRematch
+                rejectRematch={rejectRematch}
+                sendRematch={sendRematch}
+                className="p-4"
+              />
+            </div>
+          )}
           {game.gameControl.winner != null &&
             rematcher != (gameData.player == 0 ? 1 : 0) && (
               <div className="flex flex-col items-center border-b-2 border-stone-800">
@@ -350,28 +359,3 @@ export default function OnlineGame({
     </>
   );
 }
-
-const RespondRematch = ({
-  rejectRematch,
-  sendRematch,
-}: {
-  rejectRematch: () => void;
-  sendRematch: () => void;
-}) => {
-  return (
-    <div className="flex p-4 w-full items-center justify-center gap-3 border-b-2 border-stone-800 mx-4">
-      <button
-        className="max-w-[12rem] w-1/2 flex justify-center items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-700 hover:bg-stone-500 active:focus:bg-stone-800 outline-none"
-        onClick={rejectRematch}
-      >
-        <IoMdClose className="text-xl" />
-      </button>
-      <button
-        className="max-w-[12rem] w-1/2 flex justify-center items-center py-1 gap-2 px-4 font-bold text-stone-200 bg-stone-700 hover:bg-stone-500 active:focus:bg-stone-800 outline-none"
-        onClick={sendRematch}
-      >
-        <IoMdCheckmark className="text-xl" />
-      </button>
-    </div>
-  );
-};
