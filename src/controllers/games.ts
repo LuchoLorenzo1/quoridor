@@ -15,7 +15,8 @@ export interface Game {
 }
 
 export async function getGamesByUserId(userId: string) {
-  return sql<Game[]>`SELECT
+  try {
+    return sql<Game[]>`SELECT
 		games.id,
 		games.time_seconds,
 		games.history,
@@ -36,10 +37,14 @@ export async function getGamesByUserId(userId: string) {
 		ORDER BY games.started_at DESC
 		LIMIT 20
 		`;
+  } catch {
+    return null;
+  }
 }
 
 export async function getGameById(gameId: string) {
-  return sql<Game[]>`SELECT
+  try {
+    return sql<Game[]>`SELECT
 		games.id,
 		games.time_seconds,
 		games.history,
@@ -58,4 +63,7 @@ export async function getGameById(gameId: string) {
 			ON games.black_player_id = u2.id
 		WHERE games.id = ${gameId}
 		`;
+  } catch {
+    return null;
+  }
 }
