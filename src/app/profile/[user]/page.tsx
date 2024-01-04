@@ -1,5 +1,5 @@
 import authOptions from "@/app/api/auth/[...nextauth]/auth";
-import { Game, getGamesByUserId } from "@/controllers/games";
+import { getGamesByUserId } from "@/controllers/games";
 import { getServerSession } from "next-auth";
 import Image from "next/image";
 import {
@@ -42,14 +42,15 @@ export default async function Profile({ params }: profileProps) {
         className="bg-stone-200 p-4 flex gap-5 rounded-md mb-4"
         profileData={profileData}
       />
-      <ProfileLiveData
-        className="mb-4"
-        profileData={{
-          id: profileData.id,
-          name: profileData.name,
-          image: profileData.image,
-        }}
-      />
+	  { profileData.id != session.user.id && <ProfileLiveData
+			className="mb-4"
+			profileData={{
+			  id: profileData.id,
+			  name: profileData.name,
+			  image: profileData.image,
+			}}
+		  />
+	  }
       <div className="bg-stone-200 p-4 rounded-md">
         <h1 className="text-xl font-bold mb-3">Games</h1>
         {games ? (
