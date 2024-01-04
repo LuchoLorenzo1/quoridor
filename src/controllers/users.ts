@@ -18,7 +18,6 @@ export async function getUserProfileById(userId: string) {
 }
 
 export async function getUserProfileByName(name: string) {
-  console.log("en controller", name);
   try {
     return sql<
       UserProfile[]
