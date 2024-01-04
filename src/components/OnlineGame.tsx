@@ -50,6 +50,7 @@ export default function OnlineGame({
   });
 
   const [disconnected, setDisconnected] = useState(false);
+  const [viewers, setViewers] = useState(gameData.viewers || 0);
   const disconnectedTimer = useTimer({ autoStart: false, initialSeconds: 30 });
 
   const [gameAborted, setGameAborted] = useState(false);
@@ -139,24 +140,32 @@ export default function OnlineGame({
     });
 
     gameSocket.on("playerDisconnected", (playerId: string) => {
-      if (game.gameControl.winner != null) return;
+      if (playerId != whitePlayerData.id && playerId != blackPlayerData.id)
+        return setViewers((v) => v - 1);
+
+      if (game.gameControl.winner != null || gameAborted) return;
       if (
         (gameData.player == 1 && playerId == whitePlayerData.id) ||
         (gameData.player == 0 && playerId == blackPlayerData.id)
       ) {
         setDisconnected(true);
         disconnectedTimer.restart(250);
+        return;
       }
     });
 
     gameSocket.on("playerConnected", (playerId: string) => {
-      if (game.gameControl.winner != null) return;
+      if (playerId != whitePlayerData.id && playerId != blackPlayerData.id)
+        return setViewers((v) => v + 1);
+
+      if (game.gameControl.winner != null || gameAborted) return;
       if (
         (gameData.player == 1 && playerId == whitePlayerData.id) ||
         (gameData.player == 0 && playerId == blackPlayerData.id)
       ) {
         setDisconnected(false);
         disconnectedTimer.pause();
+        return;
       }
     });
 
@@ -361,7 +370,7 @@ export default function OnlineGame({
             socket={gameSocket}
             whitePlayerData={whitePlayerData}
             blackPlayerData={blackPlayerData}
-            player={gameData.player || 0}
+            viewers={viewers}
           />
         </div>
       </div>

@@ -20,6 +20,7 @@ export interface GameData {
   blackTimeLeft: number;
   winner?: number;
   winningReason?: string;
+  viewers?: number;
 }
 
 export default function Game({ params }: { params: { gameId: number } }) {

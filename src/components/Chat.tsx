@@ -1,6 +1,7 @@
 import { UserData } from "@/app/game/[gameId]/page";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
+import { FaEye } from "react-icons/fa";
 import { IoMdSend } from "react-icons/io";
 import { Socket } from "socket.io-client";
 import { twMerge } from "tailwind-merge";
@@ -14,13 +15,13 @@ const Chat = ({
   socket,
   whitePlayerData,
   blackPlayerData,
-  player,
+  viewers,
   className,
 }: {
   socket: Socket;
   whitePlayerData: UserData;
   blackPlayerData: UserData;
-  player: number;
+  viewers: number;
   className?: string;
 }) => {
   const session = useSession();
@@ -81,14 +82,23 @@ const Chat = ({
   }, [messages]);
 
   return (
-    <div className={twMerge("w-full h-full flex flex-col", className)}>
+    <div className={twMerge("relative w-full h-full flex flex-col", className)}>
+      {viewers > 0 && (
+        <div className="absolute text-stone-800 right-1 top-0 flex items-center gap-1 group hover:text-stone-900">
+          <div className="p-1 text-sm hidden absolute top-5 right-0 bg-stone-800 text-stone-200 group-hover:inline-block">
+            <h1 className="whitespace-nowrap">users watching the match</h1>
+          </div>
+          <FaEye />
+          <h2 className="select-none">{viewers}</h2>
+        </div>
+      )}
       <div
         ref={messagesRef}
-        className="h-64 bottom-0 w-full bg-stone-300 border-b-2 border-stone-800 overflow-y-scroll p-2 no-scrollbar overflow-x-scroll"
+        className="h-64 bottom-0 w-full bg-stone-300 border-b-2 border-stone-800 overflow-y-scroll p-2 no-scrollbar"
       >
         {messages.map((m, i) => {
           return (
-            <p key={i} className={`text-stone-600 text-sm text-wrap`}>
+            <p key={i} className="text-stone-600 text-sm break-words">
               {m.name && (
                 <span
                   className={twMerge(
