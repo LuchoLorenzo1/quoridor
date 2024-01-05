@@ -5,6 +5,7 @@ import { MdOutlineWifiOff } from "react-icons/md";
 import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import useTimer from "@/hooks/useTimer";
+import Rating from "./Rating";
 
 const GameUserData = ({
   playerData,
@@ -13,6 +14,7 @@ const GameUserData = ({
   color = "white",
   disconnected = false,
   disconnectedSeconds = 0,
+  rating,
 }: {
   playerData: UserData;
   wallsLeft: number;
@@ -20,6 +22,10 @@ const GameUserData = ({
   color?: "white" | "black";
   disconnected?: boolean;
   disconnectedSeconds?: number;
+  rating?: {
+    rating: number;
+    rd: number;
+  };
 }) => {
   return (
     <div className="flex items-center justify-between w-full h-full">
@@ -37,7 +43,9 @@ const GameUserData = ({
           <Avatar src={playerData.image} />
         )}
         <div className="flex flex-col">
-          <h1 className="font-bold">{playerData.name}</h1>
+          <h1 className="font-bold">
+            {playerData.name} <Rating rating={rating} />
+          </h1>
           <div className="flex items-center gap-2">
             {disconnected ? (
               <h3 className="text-xs font-thin">

@@ -21,6 +21,8 @@ export interface GameData {
   winner?: number;
   winningReason?: string;
   viewers?: number;
+  whiteRating?: { rating: number; rd: number };
+  blackRating?: { rating: number; rd: number };
 }
 
 export default function Game({ params }: { params: { gameId: number } }) {

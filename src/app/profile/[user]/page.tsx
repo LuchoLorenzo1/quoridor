@@ -12,6 +12,7 @@ import { ImTrophy } from "react-icons/im";
 import { MONTHS, UUID_REGEX } from "@/constants";
 import GamesTable from "@/components/GamesTable";
 import ProfileLiveData from "@/components/ProfileLiveData";
+import Rating from "@/components/Rating";
 
 interface profileProps {
   params: {
@@ -42,15 +43,16 @@ export default async function Profile({ params }: profileProps) {
         className="bg-stone-200 p-4 flex gap-5 rounded-md mb-4"
         profileData={profileData}
       />
-	  { profileData.id != session.user.id && <ProfileLiveData
-			className="mb-4"
-			profileData={{
-			  id: profileData.id,
-			  name: profileData.name,
-			  image: profileData.image,
-			}}
-		  />
-	  }
+      {profileData.id != session.user.id && (
+        <ProfileLiveData
+          className="mb-4"
+          profileData={{
+            id: profileData.id,
+            name: profileData.name,
+            image: profileData.image,
+          }}
+        />
+      )}
       <div className="bg-stone-200 p-4 rounded-md">
         <h1 className="text-xl font-bold mb-3">Games</h1>
         {games ? (
@@ -81,12 +83,18 @@ const ProfileCard = ({
       />
       <div className="flex flex-col justify-around flex-grow">
         <div>
-          <h1 className="text-3xl font-bold">{profileData.name}</h1>
+          <h1 className="text-3xl font-bold">
+            {profileData.name}{" "}
+            <Rating
+              className="text-xl"
+              rating={{
+                rating: profileData.rating,
+                rd: profileData.rating_deviation,
+              }}
+            />
+          </h1>
         </div>
         <div className="w-full flex gap-5">
-          <div className="flex flex-col font-bold items-center">
-            <ImTrophy /> 500
-          </div>
           <div className="flex flex-col font-bold items-center">
             <FaMedal /> 503
           </div>

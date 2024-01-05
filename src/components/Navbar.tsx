@@ -38,7 +38,7 @@ const Navbar = () => {
 export default Navbar;
 
 const NavLinkClass =
-  "rounded-md text-stone-600 bg-stone-200 px-4 py-1 text-center text-sm font-bold text-background hover:bg-stone-600 hover:text-stone-200 focus:bg-stone-700 focus:text-stone-300 outline-none";
+  "rounded-md text-stone-600 bg-stone-200 px-4 py-1 text-center text-sm font-bold text-background hover:bg-stone-600 hover:text-stone-200 outline-none select-none";
 const NavLink = ({
   href,
   text,
@@ -50,13 +50,13 @@ const NavLink = ({
 }) => {
   if (href) {
     return (
-      <Link href={href} className={NavLinkClass}>
+      <Link draggable={false} href={href} className={NavLinkClass}>
         {text}
       </Link>
     );
   }
   return (
-    <button onClick={callback} className={NavLinkClass}>
+    <button draggable={false} onClick={callback} className={NavLinkClass}>
       Sign Out
     </button>
   );

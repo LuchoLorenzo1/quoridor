@@ -263,6 +263,7 @@ export default function OnlineGame({
         >
           <GameUserData
             playerData={blackPlayerData}
+            rating={gameData.blackRating}
             timer={blackTimer}
             wallsLeft={game.gameControl.blackWallsLeft}
             color="black"
@@ -276,6 +277,7 @@ export default function OnlineGame({
           />
           <GameUserData
             playerData={whitePlayerData}
+            rating={gameData.whiteRating}
             timer={whiteTimer}
             wallsLeft={game.gameControl.whiteWallsLeft}
             disconnected={gameData.player == 1 ? disconnected : false}
@@ -353,14 +355,7 @@ export default function OnlineGame({
           </div>
           <h1>
             {!gameAborted &&
-            game.historyControl.history.length == 1 &&
-            abortTimer.totalSeconds < 6
-              ? `aborting in ${abortTimer.totalSeconds}...`
-              : ""}
-          </h1>
-          <h1>
-            {!gameAborted &&
-            game.historyControl.history.length == 0 &&
+            game.historyControl.history.length <= 1 &&
             abortTimer.totalSeconds < 6
               ? `aborting in ${abortTimer.totalSeconds}...`
               : ""}
