@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { ImTrophy } from "react-icons/im";
 import { FaMedal } from "react-icons/fa";
+import CreateGameModal from "@/components/CreateGameModal";
 
 interface Stats {
   playing: string;
@@ -19,6 +20,7 @@ export default function Home() {
   const [reconnectGameId, setReconnectGameId] = useState("");
   const [searching, setSearching] = useState<number | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [openCreateGame, setOpenCreateGame] = useState(false);
 
   useEffect(() => {
     if (status != "authenticated") return;
@@ -83,6 +85,10 @@ export default function Home() {
         <h1 className="text-stone-700 text-4xl font-bold mb-3">
           Play Quoridor
         </h1>
+        <button onClick={() => setOpenCreateGame(true)}>Create Game</button>
+        {openCreateGame && (
+          <CreateGameModal setOpen={setOpenCreateGame} open={openCreateGame} />
+        )}
         <div className="w-full grid grid-cols-3 gap-3">
           <ButtonGame seconds={30} text={"30 seconds"} />
           <ButtonGame seconds={60} text={"1 minutes"} />
