@@ -31,9 +31,13 @@ const CreateGameModal = ({
     }
     console.log(seconds, color, rated);
 
-    socket.emit("createGame", { seconds, color, rated }, (gameId: string) => {
-      router.push(`/game/${gameId}`);
-    });
+    socket.emit(
+      "createChallenge",
+      { seconds, color, rated },
+      (invitationCode: string) => {
+        router.push(`/challenge/${invitationCode}`);
+      },
+    );
   };
 
   let m;
