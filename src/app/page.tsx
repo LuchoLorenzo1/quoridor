@@ -53,6 +53,10 @@ export default function Home() {
     text?: string;
   }) => {
     const searchGame = (seconds: number) => {
+      if (status != "authenticated") {
+        router.push("/signin");
+        return;
+      }
       if (searching == seconds) {
         socket.emit("cancelSearchGame", seconds);
         setSearching(null);
